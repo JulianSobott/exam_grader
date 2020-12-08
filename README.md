@@ -1,3 +1,12 @@
-# oop_zwischenklausur_ws2020_01
+# Exam grader
 
-Solution + tests for the first 'oop Zwischenklausor ws2020'
+Tool that helps grading programming exams.
+
+## Features
+
+- test all submissions
+- view test results
+- grade based on test results and extracted code
+- view statistics (Maybe later)
+
+Most of the functionality is available via a website.
