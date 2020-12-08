@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Results",
+  "properties": {
+    "time_start": {
+      "type": "string"
+    },
+    "submissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "Submission",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "time_start": {
+            "type": "string"
+          },
+          "time_end": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "failed_task": {
+            "type": "string"
+          }
+        },
+          "required": [
+            "name",
+            "time_start",
+            "time_end",
+            "passed"
+          ]
+        }
+    },
+    "time_end": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "time_start",
+    "submissions",
+    "time_end"
+  ]
+}
+

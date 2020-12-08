@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "WebData",
+  "properties": {
+    "num_submissions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "num_passed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed_tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "FailedTaskCount",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "name",
+          "count"
+        ]
+      }
+    },
+    "submissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "WebDataSubmission",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "failed_task": {
+            "type": "string"
+          },
+          "max_points": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tasks": {
+            "type": "object",
+            "title": "WebDataTask",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "class_name": {
+                "type": "string"
+              },
+              "num_tests": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "num_passed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "num_failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_points": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sub_tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "title": "WebDataSubTask",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "max_points": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "auto_points": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "passed": {
+                      "type": "boolean"
+                    },
+                    "error_message": {
+                      "type": "string"
+                    },
+                    "code_snippets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "title": "CodeSnippet",
+                        "properties": {
+                          "class_name": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "code_status": {
+                            "type": "string",
+                            "enum": [
+                              "original",
+                              "modified",
+                              "not_found"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "class_name",
+                          "code",
+                          "code_status",
+                          "name"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "max_points",
+                    "auto_points",
+                    "code_snippets",
+                    "passed"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "name",
+              "class_name",
+              "num_failed",
+              "num_passed",
+              "num_tests",
+              "max_points",
+              "sub_tasks"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "max_points",
+          "tasks"
+        ]
+      }
+    }
+  },
+  "required": [
+    "submissions",
+    "failed_tasks",
+    "num_passed",
+    "num_submissions"
+  ]
+}
+

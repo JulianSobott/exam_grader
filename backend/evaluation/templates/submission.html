@@ -1,0 +1,27 @@
+{% from 'test_suite.html' import build_testsuite %}
+
+{% macro build_submission_report(submission) -%}
+    {% set passed_class = "passed" if submission.passed else "failed" %}
+    {% set submission_id = submission.name %}
+    <div class="submission container-{{ passed_class }}" id="submission-{{ submission_id }}">
+        <div class="header-info" onclick="expand(this)">
+            <div class="header-element {{ passed_class }}">{{ submission.name }}</div>
+            <div class="header-element {{ passed_class }}">{{ submission.name }}</div>
+            {% if not submission.passed %}
+                <div class="header-element">failed task: {{ submission.failed_task }}</div>
+            {% endif %}
+            <div class="graduation">
+                <label class="header-element graduation-label">
+                    Points:
+                    <input class="graduation-points" id="submission-points-{{ submission_id }}" disabled/>
+                    /{{ submission.max_points }}
+                </label>
+            </div>
+        </div>
+        <div class="expandable-container">
+            {% for testsuite in submission.testsuites %}
+                {{ build_testsuite(testsuite) }}
+            {% endfor %}
+        </div>
+    </div>
+{%- endmacro -%}

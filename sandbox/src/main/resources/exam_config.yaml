@@ -1,0 +1,43 @@
+---
+tasks:
+  1:
+    class: MyClass
+    sub-tasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code-snippets:
+          -
+            type: METHOD
+            name: toString
+          -
+            type: CONSTRUCTOR
+          -
+            type: ATTRIBUTES
+          -
+            type: CLASS
+      b:
+        description: Another cool program
+        points: 1
+        code-snippets:
+          -
+            type: CLASS
+  2:
+    class: MyClass
+    sub-tasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code-snippets:
+          - type: METHOD
+            name: toString
+          - type: CONSTRUCTOR
+          - type: ATTRIBUTES
+          - type: CLASS
+      b:
+        description: Another cool program
+        points: 1
+        code-snippets:
+          - type: CLASS

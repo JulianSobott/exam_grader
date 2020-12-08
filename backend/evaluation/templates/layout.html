@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+        <link href="{{ url_for('static', filename='css/submission_report.sass.css') }}" rel="stylesheet" type="text/css">
+        <link href="{{ url_for('static', filename='css/prism-atom-dark.css') }}" rel="stylesheet" type="text/css">
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    {% endblock %}
+</head>
+<body>
+<div id="content">{% block content %}{% endblock %}</div>
+<script src={{ url_for('static', filename='js/submission_report.js') }}></script>
+<script src={{ url_for('static', filename='js/grading.js') }}></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/autoloader/prism-autoloader.js"></script>
+</body>
+</html>

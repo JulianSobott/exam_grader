@@ -1,0 +1,43 @@
+{% from 'test_case.html' import build_testcase %}
+
+{% macro build_testsuite(testsuite) -%}
+    {% set passed_class = "passed" if testsuite.passed else "failed" %}
+    {% set testsuite_id = testsuite.submission_name + "--" + testsuite.name %}
+    <div class="testsuite container-{{ passed_class }}" id="testsuite-{{ testsuite_id }}">
+        <div class="header-info" onclick="expand(this)">
+            <div class="header-element name {{ passed_class }}">{{ testsuite.name }}</div>
+            <div class="header-element neutral-color">tests: {{ testsuite.num_tests }}</div>
+            <div class="header-element passed">passed: {{ testsuite.num_passed }}</div>
+            <div class="header-element failed">failed: {{ testsuite.num_failed }}</div>
+            <button class="header-element" onclick="showFullClassCode('{{ testsuite_id }}', event)">Show full code</button>
+        </div>
+        <div class="graduation testsuite-graduation-{{ testsuite.submission_name }}" id="testsuite-graduation-{{ testsuite_id }}">
+            <label class="graduation-label">
+                Points:
+                <input class="graduation-points" id="testsuite-points-{{ testsuite_id }}" disabled/>
+                /{{ testsuite.max_points }}
+            </label>
+            <label class="graduation-label" for="comment-{{ testsuite_id }}">Comment:</label>
+            <textarea class="graduation-comment" id="testsuite-comment-{{ testsuite_id }}" name="comment"
+                      cols="100" rows="1" oninput="checkEnlarge(this)"></textarea>
+            <button class="btnCopyMergeComment" onclick="copyComment('{{ testsuite_id }}')" disabled>Copy comment</button>
+        </div>
+
+        <div class="expandable-container">
+            <div class="row">
+                <div>
+                    {% for testcase in testsuite.testcases %}
+                        {{ build_testcase(testcase) }}
+                    {% endfor %}
+                </div>
+                <div class="graduation testsuite-comment-merge">
+                    <textarea class="graduation-comment merge-comment" id="testsuite-merge-comment-{{ testsuite_id }}" name="comment"
+                              cols="100" rows="1" oninput="checkEnlarge(this)" onmouseover="checkEnlarge(this)" disabled></textarea>
+                </div>
+                <div class="fullClassCode">
+                    <pre class="code-snippet"><code class="language-java" id="code-{{ testsuite_id }}"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+{%- endmacro -%}
