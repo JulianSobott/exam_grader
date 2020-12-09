@@ -1,19 +1,18 @@
+typedef file_errors
+    submission: str
+    ?wrong_named[]: str
+    ?missing[]: str
+
 prepare
     ->
         zip_url: str
     <-
-        file_errors[]: object
-            submission: str
-            ?wrong_named[]: str
-            ?missing[]: str
+        file_errors[]: $file_errors
 
 test_files
     ->
     <-
-        file_errors[]: object
-            submission: str
-            ?wrong_named[]: str
-            ?missing[]: str
+        file_errors[]: $file_errors
 
 rename_and_fill
     ->
@@ -22,7 +21,4 @@ rename_and_fill
             from_name: str
             to_name: str
     <-
-        file_errors[]: object
-            submission: str
-            ?wrong_named[]: str
-            ?missing[]: str
+        file_errors[]: $file_errors

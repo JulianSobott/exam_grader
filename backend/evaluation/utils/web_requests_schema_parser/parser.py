@@ -3,9 +3,12 @@ from typing import List
 from lark import Lark, Tree
 from lark.indenter import Indenter
 
+# TODO: typedef maybe also reference in json schema
+
 grammar = r"""
     COMMENT: "#" /[^\n]/*
     PRIMITIVE.2: "str" | "int" | "float" | "object"
+    TYPEDEF.2: "typedef"
     REQUEST: "->"
     RESPONSE: "<-"
     SEPARATOR: ":"
@@ -15,14 +18,18 @@ grammar = r"""
     
     ?start          : _NL* block*
     block           : communication _NL*
+                    | typedef _NL*
     communication   : IDENTIFIER _NL _INDENT  request response _DEDENT
     request         : REQUEST _NL body?
     response        : RESPONSE _NL body?
     body            : _INDENT object* _DEDENT
     object          : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type _NL [attributes]
-    type            : PRIMITIVE | enum
+    type            : PRIMITIVE | enum | global_type
     enum            : IDENTIFIER ("," IDENTIFIER)*
+    global_type     : "$" IDENTIFIER
     attributes      : body
+    
+    typedef         : TYPEDEF IDENTIFIER _NL body
     
     %declare _INDENT _DEDENT
     
@@ -43,12 +50,17 @@ class GrammarIndenter(Indenter):
     tab_len = 4
 
 
-l = Lark(grammar, parser="lalr", postlex=GrammarIndenter())
-
 example = """
+
+typedef my_type
+    val1: str
+    val2: int
+    val3: object
+        inner: int
+
 prepare
     ->
-        ?hello[]: object   # this is optional
+        ?hello[]: $my_type   # this is optional
             val1: str
             val2: NOT_VALID, INVALID2
         other: ENUM1, ENUM2
@@ -76,7 +88,12 @@ def schema_to_python(text: str):
 
 
 def schema_to_json_schemas(text: str) -> List[dict]:
-    ast = parse(text)
+    types = {}
+
+    def typedef(node: Tree):
+        name = node.children[1]
+        body_node = node.children[2]
+        types[name] = body_node
 
     def communication(node: Tree):
         name = node.children[0]
@@ -112,6 +129,11 @@ def schema_to_json_schemas(text: str) -> List[dict]:
                 required_props.append(list(prop.keys())[0])
         return required_props, properties
 
+    def object_type(prop_type: dict, body_node: Tree):
+        required, properties = body(body_node)
+        prop_type["properties"] = properties
+        prop_type["required"] = required
+
     def object_declaration(node: Tree):
         type_mapping = {"str": "string", "float": "number", "int": "integer", "bool": "boolean", "object": "object"}
         required = True
@@ -130,9 +152,15 @@ def schema_to_json_schemas(text: str) -> List[dict]:
                 "type": type_mapping[str(obj_type_gen)]
             }
             if obj_type_gen == "object":
-                required, properties = body(node.children[idx + 3].children[0])  # skip attributes
-                prop_type["properties"] = properties
-                prop_type["required"] = required
+                object_type(prop_type, node.children[idx + 3].children[0])
+        elif obj_type_gen.data == "global_type":
+            name = obj_type_gen.children[0]
+            prop_type = {
+                "type": "object"
+            }
+            if name not in types:
+                raise ReferenceError(f"No typedef with name: {name}")
+            object_type(prop_type, types[name])
         else:  # enum
             prop_type = {
                 "type": type_mapping["str"],
@@ -151,10 +179,15 @@ def schema_to_json_schemas(text: str) -> List[dict]:
             }
         return required, prop
 
+    ast = parse(text)
     schemas = []
     for block_node in ast.children:
-        communication_schemas = communication(block_node.children[0])
-        schemas.append(communication_schemas)
+        n = block_node.children[0]
+        if n.data == "communication":
+            communication_schemas = communication(n)
+            schemas.append(communication_schemas)
+        elif n.data == "typedef":
+            typedef(n)
     return schemas
 
 
