@@ -15,5 +15,7 @@ openpyxl = "*"
 xlsxwriter = "*"
 xlrd = "*"
 matplotlib = "*"
+lark-parser = "*"
+pydot = "*"
 
 [dev-packages]
