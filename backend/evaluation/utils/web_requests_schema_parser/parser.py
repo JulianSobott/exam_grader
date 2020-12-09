@@ -1,3 +1,5 @@
+from typing import List
+
 from lark import Lark, Tree
 from lark.indenter import Indenter
 
@@ -73,8 +75,7 @@ def schema_to_python(text: str):
     pass
 
 
-def schema_to_json_schema(text: str):
-    import json
+def schema_to_json_schemas(text: str) -> List[dict]:
     ast = parse(text)
 
     def communication(node: Tree):
@@ -150,11 +151,13 @@ def schema_to_json_schema(text: str):
             }
         return required, prop
 
+    schemas = []
     for block_node in ast.children:
         communication_schemas = communication(block_node.children[0])
-        print(json.dumps(communication_schemas, indent=2))
+        schemas.append(communication_schemas)
+    return schemas
 
 
 if __name__ == '__main__':
     parse(example)
-    schema_to_json_schema(example)
+    schema_to_json_schemas(example)

@@ -1,0 +1,28 @@
+prepare
+    ->
+        zip_url: str
+    <-
+        file_errors[]: object
+            submission: str
+            ?wrong_named[]: str
+            ?missing[]: str
+
+test_files
+    ->
+    <-
+        file_errors[]: object
+            submission: str
+            ?wrong_named[]: str
+            ?missing[]: str
+
+rename_and_fill
+    ->
+        files[]: object
+            submission: str
+            from_name: str
+            to_name: str
+    <-
+        file_errors[]: object
+            submission: str
+            ?wrong_named[]: str
+            ?missing[]: str
