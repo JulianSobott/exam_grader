@@ -39,3 +39,15 @@ class Exam:
 @dataclass
 class GlobalConfig:
     exam: Exam
+    course_id: str
+    quiz_id: str
+
+
+cfg: GlobalConfig = None
+
+
+def get_global_config():
+    global cfg
+    if not cfg:
+        cfg = GlobalConfig(None, "2395", "7542")  # TODO load from file
+    return cfg
