@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 libsass = "*"
 flask = "*"
+flask-cors = "*"
 regex = "*"
 dataclasses-json = "*"
 chardet = "*"
@@ -17,5 +18,7 @@ xlrd = "*"
 matplotlib = "*"
 lark-parser = "*"
 pydot = "*"
+pyyaml = "*"
+requests = "*"
 
 [dev-packages]

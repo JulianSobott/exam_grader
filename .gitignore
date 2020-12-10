@@ -75,3 +75,6 @@ gradle-app.setting
 
 # Cache of project
 .gradletasknamecache
+
+# -----> Project
+local.config.yaml

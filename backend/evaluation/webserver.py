@@ -1,9 +1,11 @@
-from flask import Flask
+from flask import Flask, request
+from flask_cors import CORS
 
 import api
 from utils.web_routing import routes, group, get, post
 
 app = Flask(__name__)
+CORS(app)
 
 routes(
     app,
@@ -43,3 +45,8 @@ routes(
         )
     )
 )
+
+
+@app.route("/login", methods=["GET"])
+def p():
+    req = request.get_json()
