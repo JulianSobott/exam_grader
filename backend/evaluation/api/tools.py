@@ -1,23 +1,27 @@
 import zipfile
-
-import requests
+from pathlib import Path
 
 from api.utils import api
-from config.local_config import get_local_config
+from common import raw_submissions
+from preparation import FailureType
 from schema_classes.tools_schema import PrepareRequest, PrepareResponse, _HelperClass0
+from tool_api import *
 
 
 @api(PrepareRequest)
 def prepare(data: PrepareRequest) -> PrepareResponse:
-    zip_file = requests.get(data.zip_url)
-    cfg = get_local_config()
-    zip_path = cfg.submissions_folder.joinpath("all.zip")
-    with open(zip_path, "w") as f:
-        f.write(str(zip_file.content))
-    dst_folder = cfg.submissions_folder.joinpath("raw")
-    if not dst_folder.exists():
-        dst_folder.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(zip_path, "r") as f:
-        f.extractall(dst_folder)
+    zip_path = Path(data.zip_url)
+    # since canvas api doesnt provide a simple way to download the zip we must manually download it and provide the
+    # local path to the zip file
 
-    return PrepareResponse([_HelperClass0("sub1", ["1.py", "2.py"], ["Main.java"])])
+    with zipfile.ZipFile(zip_path, "r") as f:
+        f.extractall(raw_submissions)
+
+    err = copy_raw_to_structured()
+    if err:
+        pass
+    failures = get_file_failures()
+    mapping = {FailureType.MISSING: "MISSING", FailureType.WRONG_NAMED: "WRONG_NAMED"}
+    transformed = list(map(lambda f: _HelperClass0(
+        f.submission_name, f.file_name, mapping[f.failure_type]), failures))
+    return PrepareResponse(transformed)

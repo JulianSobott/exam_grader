@@ -1,7 +1,7 @@
 typedef file_errors
-    submission: str
-    ?wrong_named[]: str
-    ?missing[]: str
+    submission_name: str
+    file_name: str
+    failure_type: WRONG_NAMED, MISSING
 
 prepare
     ->

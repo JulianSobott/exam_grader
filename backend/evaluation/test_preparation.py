@@ -1,12 +1,11 @@
 import unittest
-from unittest import mock
-from typing import List, Generator
 from pathlib import Path
+from typing import List, Generator
+from unittest import mock
 
 import preparation
-
-from utils.project_logging import get_logger
 from utils.p_types import _Error
+from utils.project_logging import get_logger
 
 logger = get_logger("TestPreparation")
 
@@ -44,7 +43,7 @@ class TestCopyFiles(unittest.TestCase):
         ])
         submission_folder = Path("/submissions")
         # execute
-        err = preparation.copy_files(raw_folder, submission_folder, fail_fast=True)
+        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=True)
         self.assertIsNone(err)
 
         # test
@@ -58,7 +57,7 @@ class TestCopyFiles(unittest.TestCase):
         ])
         submission_folder = Path("/submissions")
         # execute
-        err = preparation.copy_files(raw_folder, submission_folder, fail_fast=True)
+        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=True)
         self.assertIsInstance(err, _Error)
 
         # test
@@ -77,7 +76,7 @@ class TestCopyFiles(unittest.TestCase):
         ])
         submission_folder = Path("/submissions")
         # execute
-        err = preparation.copy_files(raw_folder, submission_folder, fail_fast=False)
+        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=False)
         self.assertIsNone(err)
 
         # test
