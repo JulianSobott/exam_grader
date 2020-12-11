@@ -91,6 +91,7 @@ def schema_to_python(text: str):
 
 def schema_to_json_schemas(text: str) -> List[dict]:
     types = {}
+    required_types = set()
 
     def typedef(node: Tree):
         type_name = str(node.children[1].children[0])  # TODO only objects are possible yet
@@ -109,17 +110,28 @@ def schema_to_json_schemas(text: str) -> List[dict]:
         }
 
     def req_resp(node: Tree, name: str, prefix: str):
+        required_types.clear()
         json_schema = {
             "$schema": "http://json-schema.org/draft-04/schema#",
             "type": "object",
             "title": f"{name}_{prefix}",
             "properties": {},
+            "definitions": {},
             "required": []
         }
         if len(node.children) > 1:
             required, properties = body(node.children[1])
             json_schema["properties"] = properties
             json_schema["required"] = required
+            for definition in required_types:
+                if definition not in types:
+                    raise ReferenceError(f"No typedef with name: {definition}")
+                prop_type = {
+                    "type": "object",
+                    "title": definition
+                }
+                object_type(prop_type, types[definition])
+                json_schema["definitions"][definition] = prop_type
         return json_schema
 
     def body(node: Tree):
@@ -156,13 +168,10 @@ def schema_to_json_schemas(text: str) -> List[dict]:
             }
         elif obj_type_gen.data == "global_type":
             glob_name = str(obj_type_gen.children[0])
+            required_types.add(glob_name)
             prop_type = {
-                "type": "object",
-                "title": glob_name
+                "$ref": f"#/definitions/{glob_name}"
             }
-            if glob_name not in types:
-                raise ReferenceError(f"No typedef with name: {glob_name}")
-            object_type(prop_type, types[glob_name])
         elif obj_type_gen.data == "enum":
             prop_type = {
                 "type": type_mapping["str"],

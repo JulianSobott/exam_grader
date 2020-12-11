@@ -43,7 +43,7 @@ def schema_to_python_dataclasses(schema: str) -> str:
     all_classes = set()
 
     def process_json_schema(s: dict):
-        classes, all_c = json_schema_to_python_dataclasses(s)
+        classes, all_c = json_schema_to_python(s)
         python_classes.append(classes)
         all_classes.update(all_c)
 
@@ -60,7 +60,7 @@ def schema_to_python_dataclasses(schema: str) -> str:
     return file_content
 
 
-def json_schema_to_python_dataclasses(schema: dict) -> Tuple[str, set]:
+def json_schema_to_python(schema: dict) -> Tuple[str, set]:
     tree = Dependency()
     parse_object(schema, tree)
     all_classes = set()
@@ -69,7 +69,9 @@ def json_schema_to_python_dataclasses(schema: dict) -> Tuple[str, set]:
 
 
 def parse_property(p: dict, tree: Dependency) -> str:
-    if p["type"] == "object":
+    if "$ref" in p:
+        p_type = to_camel_case(p["$ref"].replace("#/definitions/", ""))  # TODO: Maybe better way to get type
+    elif p["type"] == "object":
         sub_class = parse_object(p, tree)
         p_type = sub_class.name
     elif p["type"] == "array":
@@ -96,7 +98,8 @@ def parse_object(obj: dict, tree: Dependency) -> ClassObject:
         helper_class_counter += 1
 
     attributes = []
-    for p_name, p in obj["properties"].items():
+    all_props = {**obj["properties"], **obj.get("definitions", {})}
+    for p_name, p in all_props.items():
         p_type = parse_property(p, this_dep)
         required = p_name in obj.get("required", [])
         attribute = AttributeObj(p_name, p_type, required)
@@ -129,7 +132,7 @@ def generate_dataclass(class_object: ClassObject, all_classes: Set[str]) -> str:
 
 
 def generate_enum(enum_object: EnumObject, all_classes: Set[str]):
-    all_classes.add(enum_object.name)
+    all_classes.add(f'"{enum_object.name}"')
     class_str = f"class {enum_object.name}(Enum):\n"
     for attribute in enum_object.values:
         class_str += f"{INDENT}{attribute} = \"{attribute}\"\n"
