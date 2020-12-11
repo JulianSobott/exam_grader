@@ -1,46 +1,12 @@
 from typing import List
 
-from lark import Lark, Tree
+from lark import Lark, Tree, Token
 from lark.indenter import Indenter
+
 
 # TODO: typedef maybe also reference in json schema
 # TODO: typedef also other types
 # TODO: other types: bodies
-
-grammar = r"""
-    COMMENT: "#" /[^\n]/*
-    PRIMITIVE.2: "str" | "int" | "float"
-    OBJECT.2: "object"
-    TYPEDEF.2: "typedef"
-    REQUEST: "->"
-    RESPONSE: "<-"
-    SEPARATOR: ":"
-    OPTIONAL: "?"
-    ARRAY: "[]"
-    IDENTIFIER: /[a-zA-Z][a-zA-Z0-9_]*/
-    
-    ?start          : _NL* block*
-    block           : communication _NL*
-                    | typedef _NL*
-    communication   : IDENTIFIER _NL _INDENT  request response _DEDENT
-    request         : REQUEST _NL body?
-    response        : RESPONSE _NL body?
-    body            : _INDENT attribute* _DEDENT
-    attribute       : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type _NL [body]
-    type            : (PRIMITIVE | enum | global_type | object) 
-    enum            : IDENTIFIER ("," IDENTIFIER)*
-    global_type     : "$" IDENTIFIER
-    object          : OBJECT IDENTIFIER
-    typedef         : TYPEDEF object _NL body
-    
-    %declare _INDENT _DEDENT
-    
-    _NL: /(\r?\n[\t ]*)+/
-    
-    %import common.WS_INLINE
-    %ignore WS_INLINE
-    %ignore COMMENT
-"""
 
 
 class GrammarIndenter(Indenter):
@@ -50,6 +16,38 @@ class GrammarIndenter(Indenter):
     INDENT_type = "_INDENT"
     DEDENT_type = "_DEDENT"
     tab_len = 4
+
+
+class MyIndenter:
+    """_NL _INDENT/_DEDENT to BEGIN and END tokens"""
+
+    BEGIN_type = "_BEGIN"
+    END_type = "_END"
+
+    def __init__(self):
+        self.pre_lexer = GrammarIndenter()
+
+    def handle_NL(self, token):
+        yield token
+
+    def _process(self, stream):
+        for token in self.pre_lexer.process(stream):
+            if token.type == self.pre_lexer.NL_type:
+                continue
+            elif token.type == self.pre_lexer.INDENT_type:
+                yield Token.new_borrow_pos(self.BEGIN_type, token.value, token)
+            elif token.type == self.pre_lexer.DEDENT_type:
+                yield Token.new_borrow_pos(self.END_type, token.value, token)
+            else:
+                yield token
+
+    def process(self, stream):
+        return self._process(stream)
+
+    # XXX Hack for ContextualLexer. Maybe there's a more elegant solution?
+    @property
+    def always_accept(self):
+        return self.pre_lexer.always_accept
 
 
 example = """
@@ -62,26 +60,28 @@ typedef object my_type
 
 prepare
     ->
-        ?hello[]: $my_type   # this is optional
-        val1: str
-        val2: NOT_VALID, INVALID2
-        other: ENUM1, ENUM2
-        obj: object B
-            attr1: int
-            attr2: str
-        arr[]: int
+        GET
+            ?hello[]: $my_type   # this is optional
+            val1: str
+            val2: NOT_VALID, INVALID2
+            other: ENUM1, ENUM2
+            obj: object B
+                attr1: int
+                attr2: str
+            arr[]: int
     <-
        world: str
 # comment
 another
     -> 
-        val: int
+        GET
+            val: int
     <-
 """
 
 
 def parse(text: str):
-    parser = Lark(grammar, parser="lalr", postlex=GrammarIndenter())
+    parser = Lark.open("grammar.lark", parser="lalr", postlex=MyIndenter())
     return parser.parse(text)
 
 
