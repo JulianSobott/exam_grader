@@ -166,6 +166,7 @@ def schema_to_json_schemas(text: str) -> List[dict]:
         elif obj_type_gen.data == "enum":
             prop_type = {
                 "type": type_mapping["str"],
+                "title": str(node.children[0]),  # attribute key is title
                 "enum": [str(token) for token in obj_type_gen.children]
             }
         elif obj_type_gen.data == "object":

@@ -20,13 +20,21 @@ class ClassObject:
 
 
 @dataclass
+class EnumObject:
+    name: str
+    values: List[str]
+
+
+@dataclass
 class Dependency:
     dependencies: List['Dependency'] = field(default_factory=list)
     class_object: ClassObject = None
+    enum_object: EnumObject = None
 
 
 helper_class_counter = 0
 helper_class_name = "_HelperClass"
+INDENT = "    "
 
 
 def schema_to_python_dataclasses(schema: str) -> str:
@@ -45,6 +53,7 @@ def schema_to_python_dataclasses(schema: str) -> str:
     header = f"# Auto generated code by script: schemas_creator.py\n"
     imports = "from dataclasses_json import dataclass_json\n" \
               "from dataclasses import dataclass\n" \
+              "from enum import Enum\n" \
               "from typing import List, Union, Optional\n\n\n"
     all_str = "__all__ = [" + ", ".join(all_classes) + "]\n\n\n"
     file_content = header + imports + all_str + "".join(python_classes)
@@ -68,6 +77,11 @@ def parse_property(p: dict, tree: Dependency) -> str:
         p_type = f"List[{p_p_type}]"
     else:  # standard
         p_type = {"string": "str", "integer": "int", "number": "Union[int, float]", "boolean": "bool"}[p["type"]]
+        if p_type == "str" and "enum" in p:
+            name = to_camel_case(p.get("title", "HelperEnum"))
+            values = p["enum"]
+            tree.dependencies.append(Dependency(enum_object=EnumObject(name, values)))
+            p_type = name
     return p_type
 
 
@@ -93,17 +107,13 @@ def parse_object(obj: dict, tree: Dependency) -> ClassObject:
     return class_obj
 
 
-def generate_classes(root: Dependency, all_classes: Set[str]) -> str:
-    classes = ""
-    for child in root.dependencies:
-        classes += generate_classes(child, all_classes)
-    c = root.class_object
-    if helper_class_name not in c.name:
-        all_classes.add(f'"{c.name}"')
-    class_str = f"@dataclass_json\n@dataclass\nclass {c.name}:\n"
+def generate_dataclass(class_object: ClassObject, all_classes: Set[str]) -> str:
+    if helper_class_name not in class_object.name:
+        all_classes.add(f'"{class_object.name}"')
+    class_str = f"@dataclass_json\n@dataclass\nclass {class_object.name}:\n"
     required = []
     optional = []
-    for a in c.attributes:
+    for a in class_object.attributes:
         if a.required:
             attribute_str = f"{a.name}: {a.type}"
             required.append(attribute_str)
@@ -112,11 +122,29 @@ def generate_classes(root: Dependency, all_classes: Set[str]) -> str:
             attribute_str = f"{a.name}: Optional[{a.type}] = {default_value}"
             optional.append(attribute_str)
     for attribute_str in required + optional:  # optional after required
-        class_str += f"    {attribute_str}\n"
+        class_str += f"{INDENT}{attribute_str}\n"
     if not required and not optional:
-        class_str += f"    pass\n"
-    class_str += "\n\n"
-    classes += class_str
+        class_str += f"{INDENT}pass\n"
+    return class_str
+
+
+def generate_enum(enum_object: EnumObject, all_classes: Set[str]):
+    all_classes.add(enum_object.name)
+    class_str = f"class {enum_object.name}(Enum):\n"
+    for attribute in enum_object.values:
+        class_str += f"{INDENT}{attribute} = \"{attribute}\"\n"
+    return class_str
+
+
+def generate_classes(root: Dependency, all_classes: Set[str]) -> str:
+    classes = ""
+    for child in root.dependencies:
+        classes += generate_classes(child, all_classes)
+    if root.class_object:
+        classes += generate_dataclass(root.class_object, all_classes)
+    elif root.enum_object:
+        classes += generate_enum(root.enum_object, all_classes)
+    classes += "\n\n"
     return classes
 
 
