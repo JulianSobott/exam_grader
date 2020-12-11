@@ -14,6 +14,8 @@ STATUS_CODE: /[0-9]+/
 file            : block*
 block           : communication _NL*
                 | typedef _NL*
+                | constant _NL*
+constant        : IDENTIFIER "=" /[^\n]/* _NL
 communication   : IDENTIFIER _NL _BEGIN communication_attributes request response _END
 communication_attributes: simple_attribute*
 simple_attribute: IDENTIFIER SEPARATOR /[^\n]/* _NL

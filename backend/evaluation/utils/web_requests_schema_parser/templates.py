@@ -117,24 +117,25 @@ class Template:
         return out
 
     def substitude(self, var_name, indentation):
-        def sub(value):
-            if value is None:
-                return ""
-            if isinstance(value, Template):
-                return value.to_str()
-            elif isinstance(value, list):
-                return "\n".join(sub(v) for v in value)
-            else:
-                return str(value)
-
         try:
             text = self.__getattribute__(f"{var_name}_to_str")()
         except AttributeError:
             attribute = self.__getattribute__(var_name)
-            text = sub(attribute)
+            text = self.sub(attribute)
         lines = text.split("\n")
         text = "\n".join(indentation + l for l in lines)
         return text
+
+    def sub(self, value):
+        """no indentation, just to string"""
+        if value is None:
+            return ""
+        if isinstance(value, Template):
+            return value.to_str()
+        elif isinstance(value, list):
+            return "\n".join(self.sub(v) for v in value)
+        else:
+            return str(value)
 
 
 def get_char_class(c: str):

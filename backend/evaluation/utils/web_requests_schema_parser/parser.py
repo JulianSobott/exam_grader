@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from lark import Lark, Tree, Token, Visitor
 from lark.indenter import Indenter
 
@@ -102,6 +104,9 @@ class MyTransformer(Visitor):
 
     def block(self, node: Tree):
         node.transformed = node.children[0].transformed
+
+    def constant(self, node: Tree):
+        node.transformed = Constant(node.children[0].value, node.children[2].value)
 
     def communication(self, node: Tree):
         name = node.children[0].value
@@ -209,7 +214,7 @@ class MyTransformer(Visitor):
     def typedef(self, node: Tree):
         type_type = type_mapping[node.children[1].value]
         name = node.children[2].value
-        data = self._body_to_type(node.children[3], type_type)
+        data = self._body_to_type(node.children[3].transformed, type_type)
         node.transformed = TypeDefinition(type_type, data, name)
 
     def _body_to_type(self, body: Body, type_type: type):
@@ -217,7 +222,8 @@ class MyTransformer(Visitor):
 
 
 def parse(text: str) -> File:
-    parser = Lark.open("grammar.lark", parser="lalr", postlex=GrammarIndenter())
+    grammar_file = Path(__file__).parent.joinpath("grammar.lark")
+    parser = Lark.open(grammar_file, parser="lalr", postlex=GrammarIndenter())
     parse_tree = parser.parse(text)
     transformer = MyTransformer()
     res = transformer.visit(parse_tree)

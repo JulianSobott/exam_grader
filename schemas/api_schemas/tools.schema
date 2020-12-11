@@ -1,7 +1,7 @@
 typedef object FileError
     submission_name: str
     file_name: str
-    failure_type: WRONG_NAMED, MISSING
+    failure_type: {WRONG_NAMED, MISSING} FileErrorType
 
 api_uri = /api/v1/tools
 
@@ -9,22 +9,26 @@ prepare
     uri: $api_uri/prepare
     description: process submissions. Must be the first step when starting
     ->
-        zip_url: str
+        POST
+            zip_url: str
     <-
-        file_errors[]: $FileError
+        200
+            file_errors[]: $FileError
 
-/test_files
+test_files
     ->
+        GET
     <-
-        file_errors[]: $FileError
+        200
+            file_errors[]: $FileError
 
 rename_and_fill
     ->
-        files[]: object RenameFile
-            submission: str
-            from_name: str
-            to_name: str
+        POST
+            files[]: object RenameFile
+                submission: str
+                from_name: str
+                to_name: str
     <-
-        file_errors[]: $FileError
-
-
+        200
+            file_errors[]: $FileError
