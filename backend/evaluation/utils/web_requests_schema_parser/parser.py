@@ -1,53 +1,19 @@
-from typing import List
-
-from lark import Lark, Tree, Token
+from lark import Lark, Tree, Token, Visitor
 from lark.indenter import Indenter
-
 
 # TODO: typedef maybe also reference in json schema
 # TODO: typedef also other types
 # TODO: other types: bodies
+from utils.web_requests_schema_parser.intermediate_representation import *
 
 
 class GrammarIndenter(Indenter):
     NL_type = "_NL"
     OPEN_PAREN_types = []
     CLOSE_PAREN_types = []
-    INDENT_type = "_INDENT"
-    DEDENT_type = "_DEDENT"
+    INDENT_type = "_BEGIN"
+    DEDENT_type = "_END"
     tab_len = 4
-
-
-class MyIndenter:
-    """_NL _INDENT/_DEDENT to BEGIN and END tokens"""
-
-    BEGIN_type = "_BEGIN"
-    END_type = "_END"
-
-    def __init__(self):
-        self.pre_lexer = GrammarIndenter()
-
-    def handle_NL(self, token):
-        yield token
-
-    def _process(self, stream):
-        for token in self.pre_lexer.process(stream):
-            if token.type == self.pre_lexer.NL_type:
-                continue
-            elif token.type == self.pre_lexer.INDENT_type:
-                yield Token.new_borrow_pos(self.BEGIN_type, token.value, token)
-            elif token.type == self.pre_lexer.DEDENT_type:
-                yield Token.new_borrow_pos(self.END_type, token.value, token)
-            else:
-                yield token
-
-    def process(self, stream):
-        return self._process(stream)
-
-    # XXX Hack for ContextualLexer. Maybe there's a more elegant solution?
-    @property
-    def always_accept(self):
-        return self.pre_lexer.always_accept
 
 
 example = """
@@ -59,160 +25,204 @@ typedef object my_type
         inner: int
 
 prepare
+    uri: /api/v1/prepare
+    description: do something   cool=)=
     ->
         GET
             ?hello[]: $my_type   # this is optional
             val1: str
-            val2: NOT_VALID, INVALID2
-            other: ENUM1, ENUM2
+            val2: {NOT_VALID, INVALID2}
+            other: {ENUM1, ENUM2}
             obj: object B
                 attr1: int
                 attr2: str
             arr[]: int
     <-
-       world: str
+        200
+            world: str
 # comment
 another
     -> 
         GET
             val: int
     <-
+        200
 """
 
 
-def parse(text: str):
-    parser = Lark.open("grammar.lark", parser="lalr", postlex=MyIndenter())
-    return parser.parse(text)
+class ChildStream:
+    EOF = "EOF"
+
+    def __init__(self, node: Tree):
+        self.children = node.children
+        self.next_idx = 0
+
+    def peek(self) -> Union[Token, str]:
+        if self.next_idx >= len(self.children):
+            return self.EOF
+        return self.children[self.next_idx]
+
+    def next(self) -> Union[Token, str]:
+        if self.next_idx >= len(self.children):
+            return self.EOF
+        self.next_idx += 1
+        return self.children[self.next_idx - 1]
+
+    def skip(self, n=1):
+        self.next_idx += n
 
 
-def schema_to_python(text: str):
-    pass
+type_mapping = {
+    "int": IntType,
+    "str": StringType,
+    "float": FloatType,
+    "bool": BooleanType,
+    "object": ObjectType,
+    "enum": EnumType,
+}
 
 
-def schema_to_json_schemas(text: str) -> List[dict]:
-    types = {}
-    required_types = set()
+class MyTransformer(Visitor):
 
-    def typedef(node: Tree):
-        type_name = str(node.children[1].children[0])  # TODO only objects are possible yet
-        name = str(node.children[1].children[1])
-        body_node = node.children[2]
-        types[name] = body_node
+    def __init__(self):
+        self.stack = []
 
-    def communication(node: Tree):
-        name = str(node.children[0])
-        request_schema = req_resp(node.children[1], name, "Request")
-        response_schema = req_resp(node.children[2], name, "Response")
-        return {
-            "name": name,
-            "request": request_schema,
-            "response": response_schema,
-        }
+    def file(self, node: Tree):
+        communications = []
+        global_types = []
+        constants = []
+        for n in node.children:
+            if isinstance(n.transformed, Communication):
+                communications.append(n.transformed)
+            elif isinstance(n.transformed, TypeDefinition):
+                global_types.append(n.transformed)
+            elif isinstance(n.transformed, Constant):
+                constants.append(n.transformed)
+        node.transformed = File(communications, global_types, constants)
 
-    def req_resp(node: Tree, name: str, prefix: str):
-        required_types.clear()
-        json_schema = {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "type": "object",
-            "title": f"{name}_{prefix}",
-            "properties": {},
-            "definitions": {},
-            "required": []
-        }
-        if len(node.children) > 1:
-            required, properties = body(node.children[1])
-            json_schema["properties"] = properties
-            json_schema["required"] = required
-            for definition in required_types:
-                if definition not in types:
-                    raise ReferenceError(f"No typedef with name: {definition}")
-                prop_type = {
-                    "type": "object",
-                    "title": definition
-                }
-                object_type(prop_type, types[definition])
-                json_schema["definitions"][definition] = prop_type
-        return json_schema
+    def block(self, node: Tree):
+        node.transformed = node.children[0].transformed
 
-    def body(node: Tree):
-        required_props = []
-        properties = {}
-        for obj in node.children:
-            required, prop = attribute(obj)
-            properties.update(prop)
-            if required:
-                required_props.append(list(prop.keys())[0])
-        return required_props, properties
+    def communication(self, node: Tree):
+        name = node.children[0].value
+        attributes = node.children[1].transformed
+        request = node.children[2].transformed
+        response = node.children[3].transformed
+        node.transformed = Communication(name, attributes, request, response)
 
-    def object_type(prop_type: dict, body_node: Tree):
-        required, properties = body(body_node)
-        prop_type["properties"] = properties
-        prop_type["required"] = required
+    def communication_attributes(self, node: Tree):
+        attributes = []
+        for n in node.children:
+            attributes.append(n.transformed)
+        node.transformed = attributes
 
-    def attribute(node: Tree):
-        type_mapping = {"str": "string", "float": "number", "int": "integer", "bool": "boolean"}
-        required = True
-        idx = 0
-        if node.children[0] == "?":  # Optional
-            required = False
-            idx = 1
-        name = str(node.children[idx])
+    def simple_attribute(self, node: Tree):
+        key = node.children[0].value
+        value = node.children[2].value
+        node.transformed = SimpleAttribute(key, value)
+
+    def request(self, node: Tree):
+        bodies = []
+        for n in node.children[1:]:
+            bodies.append(n.transformed)
+        node.transformed = Request(bodies)
+
+    def request_method(self, node: Tree):
+        method = node.children[0].value
+        body = None
+        if len(node.children) == 2:
+            body = node.children[1].transformed
+        node.transformed = RequestMethod(method, body)
+
+    def response(self, node: Tree):
+        bodies = []
+        for n in node.children[1:]:
+            bodies.append(n.transformed)
+        node.transformed = Response(bodies)
+
+    def response_body(self, node: Tree):
+        status_code = int(node.children[0].value)
+        body = None
+        if len(node.children) == 2:
+            body = node.children[1].transformed
+        node.transformed = ResponseBody(status_code, body)
+
+    def body(self, node: Tree):
+        attributes = []
+        for n in node.children:
+            attributes.append(n.transformed)
+        node.transformed = Body(attributes)
+
+    def attribute(self, node: Tree):
+        tokens = ChildStream(node)
+        is_optional = False
+        if tokens.peek().type == "OPTIONAL":
+            is_optional = True
+            tokens.next()
+        name = tokens.next().value
         is_array = False
-        if node.children[idx + 1] == "[]":
+        if tokens.peek().type == "ARRAY":
             is_array = True
-            idx += 1
-        obj_type_gen = node.children[idx + 2].children[0]  # skip SEPARATOR
-        if isinstance(obj_type_gen, str):  # primitive
-            prop_type = {
-                "type": type_mapping[str(obj_type_gen)]
-            }
-        elif obj_type_gen.data == "global_type":
-            glob_name = str(obj_type_gen.children[0])
-            required_types.add(glob_name)
-            prop_type = {
-                "$ref": f"#/definitions/{glob_name}"
-            }
-        elif obj_type_gen.data == "enum":
-            prop_type = {
-                "type": type_mapping["str"],
-                "title": str(node.children[0]),  # attribute key is title
-                "enum": [str(token) for token in obj_type_gen.children]
-            }
-        elif obj_type_gen.data == "object":
-            prop_type = {
-                "type": "object",
-                "title": str(obj_type_gen.children[1])
-            }
-            object_type(prop_type, node.children[idx + 3])
-        else:
-            raise TypeError("Unknown type: " + str(obj_type_gen))
-        if is_array:
-            prop = {
-                name: {
-                    "type": "array",
-                    "items": prop_type
-                }
-            }
-        else:
-            prop = {
-                name: prop_type
-            }
-        return required, prop
+            tokens.next()
+        tokens.skip()  # skip separator
+        type_definition = tokens.next().transformed
+        node.transformed = Attribute(name, type_definition, is_optional, is_array)
 
-    ast = parse(text)
-    schemas = []
-    for block_node in ast.children:
-        n = block_node.children[0]
-        if n.data == "communication":
-            communication_schemas = communication(n)
-            schemas.append(communication_schemas)
-        elif n.data == "typedef":
-            typedef(n)
-    return schemas
+    def type_definition(self, node: Tree):
+        tokens = ChildStream(node)
+        type_type = tokens.next().transformed
+        name = None
+        token = tokens.peek()
+        if token != ChildStream.EOF and token.type == "IDENTIFIER":
+            name = tokens.next().value
+        data = None
+        if tokens.peek() != ChildStream.EOF:
+            body = tokens.next().transformed
+            data = self._body_to_type(body, type_type)
+        if type_type == EnumType:
+            data = node.children[0].inline_data
+        if type_type == ReferenceType:
+            data = node.children[0].inline_data
+        node.transformed = TypeDefinition(type_type, data, name)
+
+    def type(self, node):
+        token = node.children[0]
+        if isinstance(token, Token):  # PRIMITIVE
+            type_type = type_mapping[token.value]
+            node.transformed = type_type
+        elif token.data == "enum":
+            node.transformed = EnumType
+            node.inline_data = token.transformed
+        elif token.data == "global_type":
+            node.transformed = ReferenceType
+            node.inline_data = token.transformed
+
+    def enum(self, node):
+        values = []
+        for n in node.children:
+            values.append(n.value)
+        node.transformed = EnumType(values)
+
+    def global_type(self, node):
+        node.transformed = ReferenceType(node.children[0].value)
+
+    def typedef(self, node: Tree):
+        type_type = type_mapping[node.children[1].value]
+        name = node.children[2].value
+        data = self._body_to_type(node.children[3], type_type)
+        node.transformed = TypeDefinition(type_type, data, name)
+
+    def _body_to_type(self, body: Body, type_type: type):
+        return ObjectType(body)  # TODO
+
+
+def parse(text: str) -> File:
+    parser = Lark.open("grammar.lark", parser="lalr", postlex=GrammarIndenter())
+    parse_tree = parser.parse(text)
+    transformer = MyTransformer()
+    res = transformer.visit(parse_tree)
+    return res.transformed
 
 
 if __name__ == '__main__':
-    import json
-
     parse(example)
-    print(json.dumps(schema_to_json_schemas(example), indent=2))

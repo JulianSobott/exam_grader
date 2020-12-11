@@ -1,29 +1,33 @@
 COMMENT: "#" /[^\n]/*
-PRIMITIVE.2: "str" | "int" | "float"
-OBJECT.2: "object"
+PRIMITIVE.2: "str" | "int" | "float" | "object" | "bool"
 TYPEDEF.2: "typedef"
-HTTP_METHOD: "GET"i | "HEAD"i | "POST"i | "PUT"i | "DELETE"i | "CONNECT"i | "OPTIONS"i | "TRACE"i | "PATCH"i
+HTTP_METHOD.2: "GET"i | "HEAD"i | "POST"i | "PUT"i | "DELETE"i | "CONNECT"i | "OPTIONS"i | "TRACE"i | "PATCH"i
 REQUEST: "->"
 RESPONSE: "<-"
 SEPARATOR: ":"
 OPTIONAL: "?"
 ARRAY: "[]"
 IDENTIFIER: /[a-zA-Z][a-zA-Z0-9_]*/
+STATUS_CODE: /[0-9]+/
 
-?start          : block*
-block           : communication
-                | typedef
-communication   : IDENTIFIER _BEGIN  request response _END
-request         : REQUEST request_body
-request_body    : _BEGIN (HTTP_METHOD body)+ _END
-response        : RESPONSE body?
+?start          : _NL* file
+file            : block*
+block           : communication _NL*
+                | typedef _NL*
+communication   : IDENTIFIER _NL _BEGIN communication_attributes request response _END
+communication_attributes: simple_attribute*
+simple_attribute: IDENTIFIER SEPARATOR /[^\n]/* _NL
+request         : REQUEST _NL _BEGIN request_method* _END
+request_method  : HTTP_METHOD _NL body?
+response        : RESPONSE _NL _BEGIN response_body+ _END
+response_body   : STATUS_CODE _NL body?
 body            : _BEGIN attribute* _END
-attribute       : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type [body]
-type            : (PRIMITIVE | enum | global_type | object)
-enum            : IDENTIFIER ("," IDENTIFIER)*
+attribute       : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type_definition
+type_definition : type IDENTIFIER? _NL body?
+type            : PRIMITIVE | enum | global_type
+enum            : "{" IDENTIFIER ("," IDENTIFIER)* "}"
 global_type     : "$" IDENTIFIER
-object          : OBJECT IDENTIFIER
-typedef         : TYPEDEF object body
+typedef         : TYPEDEF PRIMITIVE IDENTIFIER _NL body
 
 %declare _BEGIN _END
 
