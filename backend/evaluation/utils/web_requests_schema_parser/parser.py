@@ -4,10 +4,13 @@ from lark import Lark, Tree
 from lark.indenter import Indenter
 
 # TODO: typedef maybe also reference in json schema
+# TODO: typedef also other types
+# TODO: other types: bodies
 
 grammar = r"""
     COMMENT: "#" /[^\n]/*
-    PRIMITIVE.2: "str" | "int" | "float" | "object"
+    PRIMITIVE.2: "str" | "int" | "float"
+    OBJECT.2: "object"
     TYPEDEF.2: "typedef"
     REQUEST: "->"
     RESPONSE: "<-"
@@ -22,14 +25,13 @@ grammar = r"""
     communication   : IDENTIFIER _NL _INDENT  request response _DEDENT
     request         : REQUEST _NL body?
     response        : RESPONSE _NL body?
-    body            : _INDENT object* _DEDENT
-    object          : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type _NL [attributes]
-    type            : PRIMITIVE | enum | global_type
+    body            : _INDENT attribute* _DEDENT
+    attribute       : OPTIONAL? IDENTIFIER ARRAY? SEPARATOR type _NL [body]
+    type            : (PRIMITIVE | enum | global_type | object) 
     enum            : IDENTIFIER ("," IDENTIFIER)*
     global_type     : "$" IDENTIFIER
-    attributes      : body
-    
-    typedef         : TYPEDEF IDENTIFIER _NL body
+    object          : OBJECT IDENTIFIER
+    typedef         : TYPEDEF object _NL body
     
     %declare _INDENT _DEDENT
     
@@ -52,19 +54,19 @@ class GrammarIndenter(Indenter):
 
 example = """
 
-typedef my_type
+typedef object my_type
     val1: str
     val2: int
-    val3: object
+    val3: object AnotherType
         inner: int
 
 prepare
     ->
         ?hello[]: $my_type   # this is optional
-            val1: str
-            val2: NOT_VALID, INVALID2
+        val1: str
+        val2: NOT_VALID, INVALID2
         other: ENUM1, ENUM2
-        obj: object
+        obj: object B
             attr1: int
             attr2: str
         arr[]: int
@@ -91,12 +93,13 @@ def schema_to_json_schemas(text: str) -> List[dict]:
     types = {}
 
     def typedef(node: Tree):
-        name = node.children[1]
+        type_name = str(node.children[1].children[0])  # TODO only objects are possible yet
+        name = str(node.children[1].children[1])
         body_node = node.children[2]
         types[name] = body_node
 
     def communication(node: Tree):
-        name = node.children[0]
+        name = str(node.children[0])
         request_schema = req_resp(node.children[1], name, "Request")
         response_schema = req_resp(node.children[2], name, "Response")
         return {
@@ -123,7 +126,7 @@ def schema_to_json_schemas(text: str) -> List[dict]:
         required_props = []
         properties = {}
         for obj in node.children:
-            required, prop = object_declaration(obj)
+            required, prop = attribute(obj)
             properties.update(prop)
             if required:
                 required_props.append(list(prop.keys())[0])
@@ -134,14 +137,14 @@ def schema_to_json_schemas(text: str) -> List[dict]:
         prop_type["properties"] = properties
         prop_type["required"] = required
 
-    def object_declaration(node: Tree):
-        type_mapping = {"str": "string", "float": "number", "int": "integer", "bool": "boolean", "object": "object"}
+    def attribute(node: Tree):
+        type_mapping = {"str": "string", "float": "number", "int": "integer", "bool": "boolean"}
         required = True
         idx = 0
         if node.children[0] == "?":  # Optional
             required = False
             idx = 1
-        name = node.children[idx]
+        name = str(node.children[idx])
         is_array = False
         if node.children[idx + 1] == "[]":
             is_array = True
@@ -151,21 +154,28 @@ def schema_to_json_schemas(text: str) -> List[dict]:
             prop_type = {
                 "type": type_mapping[str(obj_type_gen)]
             }
-            if obj_type_gen == "object":
-                object_type(prop_type, node.children[idx + 3].children[0])
         elif obj_type_gen.data == "global_type":
-            name = obj_type_gen.children[0]
+            glob_name = str(obj_type_gen.children[0])
             prop_type = {
-                "type": "object"
+                "type": "object",
+                "title": glob_name
             }
-            if name not in types:
-                raise ReferenceError(f"No typedef with name: {name}")
-            object_type(prop_type, types[name])
-        else:  # enum
+            if glob_name not in types:
+                raise ReferenceError(f"No typedef with name: {glob_name}")
+            object_type(prop_type, types[glob_name])
+        elif obj_type_gen.data == "enum":
             prop_type = {
                 "type": type_mapping["str"],
                 "enum": [str(token) for token in obj_type_gen.children]
             }
+        elif obj_type_gen.data == "object":
+            prop_type = {
+                "type": "object",
+                "title": str(obj_type_gen.children[1])
+            }
+            object_type(prop_type, node.children[idx + 3])
+        else:
+            raise TypeError("Unknown type: " + str(obj_type_gen))
         if is_array:
             prop = {
                 name: {
@@ -192,5 +202,7 @@ def schema_to_json_schemas(text: str) -> List[dict]:
 
 
 if __name__ == '__main__':
+    import json
+
     parse(example)
-    schema_to_json_schemas(example)
+    print(json.dumps(schema_to_json_schemas(example), indent=2))

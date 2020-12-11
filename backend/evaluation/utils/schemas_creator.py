@@ -148,6 +148,8 @@ def write_file(name: str, dest_folder: Path, text: str):
 
 
 def to_camel_case(text: str) -> str:
+    if "_" not in text:
+        return text[0].upper() + text[1:]
     return "".join(map(str.title, text.split("_")))
 
 

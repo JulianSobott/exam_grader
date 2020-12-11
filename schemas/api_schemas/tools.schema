@@ -1,4 +1,4 @@
-typedef file_errors
+typedef object FileError
     submission_name: str
     file_name: str
     failure_type: WRONG_NAMED, MISSING
@@ -7,18 +7,20 @@ prepare
     ->
         zip_url: str
     <-
-        file_errors[]: $file_errors
+        file_errors[]: $FileError
 
 test_files
     ->
     <-
-        file_errors[]: $file_errors
+        file_errors[]: $FileError
 
 rename_and_fill
     ->
-        files[]: object
+        files[]: object RenameFile
             submission: str
             from_name: str
             to_name: str
     <-
-        file_errors[]: $file_errors
+        file_errors[]: $FileError
+
+
