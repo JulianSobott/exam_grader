@@ -1,13 +1,16 @@
-import subprocess
-from pathlib import Path
-import re
-from typing import Tuple, NewType, Optional, List
-from datetime import datetime
 import os
+import re
+import subprocess
+from datetime import datetime
+from pathlib import Path
+from typing import Tuple, NewType, Optional, List
 
-from common import submission_folder, logger, iter_submissions_folders
+from common import structured_submissions, iter_submissions_folders
+from schema_classes.testing_schema import Submission, Results
 from test_results import save_test_results, load_test_results
-from schema_classes import Submission, Results
+from utils.project_logging import get_logger
+
+logger = get_logger(__name__)
 
 Task = NewType("Task", str)
 TASK_JAVA = Task("compileJava")
@@ -29,7 +32,7 @@ def run_tests_for_all():
 def run_tests_for_submissions(submissions: List[str]):
     prev_results, error = load_test_results()
     if error:
-        logger.warning(f"[WARNING run_tests] {error}")
+        logger.warning(f"{error}")
         start_time_all = datetime.now()
         prev_results = Results(start_time_all.isoformat(), [], start_time_all.isoformat())
     for abs_path_submission in iter_submissions_folders():
@@ -60,7 +63,7 @@ def run_test_for_submission(submission: str):
 
 def run_tests(submission_name: str) -> subprocess.CompletedProcess:
     gradle_wrapper = "./gradlew" if os.name == "posix" else "gradlew.bat"
-    command = f"{gradle_wrapper} -Psubmission=\"{submission_name}\" -PsubmissionFolder=\"{submission_folder}\" test"
+    command = f"{gradle_wrapper} -Psubmission=\"{submission_name}\" -PsubmissionFolder=\"{structured_submissions}\" test"
     try:
         res = subprocess.run(
             command,

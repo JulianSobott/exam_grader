@@ -5,6 +5,7 @@ from config.local_config import get_local_config
 _config = get_local_config()
 raw_submissions = _config.submissions_folder.joinpath("raw")
 structured_submissions = _config.submissions_folder.joinpath("structured")
+submission_results_folder = _config.submissions_folder.joinpath("results")
 empty_java_classes = _config.reference_project.joinpath("src/empty")
 
 

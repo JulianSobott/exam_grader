@@ -1,12 +1,13 @@
-from typing import Optional, Tuple
+from enum import IntEnum
+from typing import Tuple
 
 from git import Repo
-from git.exc import InvalidGitRepositoryError
-import difflib
-from pathlib import Path
-from enum import IntEnum
 
-from common import submission_folder, logger, error
+from common import structured_submissions
+from utils.p_types import error
+from utils.project_logging import get_logger
+
+logger = get_logger(__name__)
 
 """
 commits
@@ -27,14 +28,14 @@ class CommitState(IntEnum):
 
 
 def _git_add_and_commit(msg: str):
-    repo = Repo(submission_folder)
+    repo = Repo(structured_submissions)
     repo.git.add(A=True)
     repo.index.commit(msg)
     logger.info(f"[GIT] commit: {repo.commit().message}")
 
 
 def git_copied_files():
-    Repo.init(submission_folder)
+    Repo.init(structured_submissions)
     _git_add_and_commit("Step 1: Copied files to directories")
 
 
@@ -57,7 +58,7 @@ def cache_commits():
     global _commits
     if _commits:
         return _commits
-    repo = Repo(submission_folder)
+    repo = Repo(structured_submissions)
     _commits = list(reversed(list(repo.iter_commits())))
     return _commits
 

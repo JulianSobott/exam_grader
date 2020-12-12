@@ -1,13 +1,16 @@
+import re
 from pathlib import Path
 
-import pandas as pd
-import re
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
-from common import gradings_file, logger
-from schema_classes import Gradings, GradingSubmission, GradingTestSuite
+from common import submission_results_folder
+from schema_classes.gradings_schema import Gradings, GradingSubmission
 from test_code_mapping import test_points_mapping
+from utils.project_logging import get_logger
+
+logger = get_logger(__name__)
 
 testcase_comment = """
 $NAME
@@ -18,6 +21,7 @@ $COMMENT
 
 
 def load_gradings() -> Gradings:
+    gradings_file = submission_results_folder.joinpath("gradings.json")
     with open(gradings_file, "r") as f:
         gradings = Gradings.from_json(f.read())
     return gradings

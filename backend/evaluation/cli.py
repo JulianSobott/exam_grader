@@ -1,11 +1,11 @@
 import argparse
-from typing import List, Callable, Any
-from dataclasses import dataclass, field
-import sys
 import logging
+import sys
+from dataclasses import dataclass, field
+from typing import List, Callable
 
+from common import submission_names
 from tool_api import *
-from common import submission_folder, submission_raw_folder, logger, submission_names
 
 
 def run():
