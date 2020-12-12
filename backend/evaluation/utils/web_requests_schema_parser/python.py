@@ -24,9 +24,11 @@ def $name(self, data: $data_type) -> "$return_type":
 class PyRequestClass(Template):
     name: str
     methods: List[PyRequestMethod]
+    url = "http://localhost/"
     _template = """
 class $name(ABC):
     _json_mapper = $json_mapper
+    _url = $url
     
     def __init__(self, request):
         self.request = request
