@@ -43,10 +43,10 @@ def $http_method(cls, $attributes) -> Tuple["$response_type", str]:
         return "{" + ", ".join(f"{code}: {class_}" for code, class_ in self.code_class_map.items()) + "}"
 
     def attributes_to_str(self):
-        return ", ".join([a.to_str() for a in self.attributes])
+        return ", ".join([a.to_str() for a in get_ordered_attributes(self.attributes)])
 
     def attribute_names_to_str(self):
-        return ", ".join([a.name for a in self.attributes])
+        return ", ".join([a.name for a in get_ordered_attributes(self.attributes)])
 
 
 @dataclass
@@ -124,7 +124,13 @@ class $name:
         if not self.attributes:
             return "pass"
         else:
-            return self.sub(self.attributes)
+            return self.sub(get_ordered_attributes(self.attributes))
+
+
+def get_ordered_attributes(attributes: List[PyAttribute]):
+    required = [a for a in attributes if not a.init_code]
+    optional = [a for a in attributes if a.init_code]
+    return required + optional
 
 
 @dataclass
