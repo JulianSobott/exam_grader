@@ -1,11 +1,16 @@
 from dataclasses import dataclass
+from random import random
 from typing import Callable, List
-from flask import Flask
+
+from flask import Flask, request
+
+from api import todo
 
 
 @dataclass
 class SimpleRoute:
     rule: str
+    name: str
     function: Callable
     options: dict
 
@@ -13,7 +18,7 @@ class SimpleRoute:
 def routes(app: Flask, *all_routes: List[SimpleRoute]):
     for r1 in all_routes:
         for r2 in r1:
-            app.add_url_rule(r2.rule, r2.function.__name__, r2.function, **r2.options)
+            app.add_url_rule(r2.rule, r2.name, r2.function, **r2.options)
 
 
 def group(rule: str, *sub_routes: List[SimpleRoute]) -> List[SimpleRoute]:
@@ -25,14 +30,23 @@ def group(rule: str, *sub_routes: List[SimpleRoute]) -> List[SimpleRoute]:
     return new_routes
 
 
-def route(rule: str, function, **options) -> List[SimpleRoute]:
-    return [SimpleRoute(rule, function, options)]
+def _route(rule: str, request_class, method: str, **options) -> List[SimpleRoute]:
+    def inner(*_, **__):
+        instance = request_class(request)
+        data = instance.process_json(method.lower())
+        caller = instance.__getattribute__(method.lower())
+        res = caller(data)
+        return res.to_json()
+
+    function_name = f"{request_class}_{method}"
+    if request_class == todo:
+        function_name = function_name + str(random())
+    return [SimpleRoute(rule, function_name, inner, options)]
 
 
 def get(rule: str, function, **options) -> List[SimpleRoute]:
-    return route(rule, function, methods=["GET"], **options)
+    return _route(rule, function, "get", methods=["GET"], **options)
 
 
 def post(rule: str, function, **options) -> List[SimpleRoute]:
-    return route(rule, function, methods=["POST"], **options)
-
+    return _route(rule, function, "post", methods=["POST"], **options)

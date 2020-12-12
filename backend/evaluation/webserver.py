@@ -23,7 +23,7 @@ routes(
             ),
             group(
                 "/tools",
-                post("/prepare", api.tools.prepare),
+                post("/prepare", api.tools.PrepareRequest),
                 post("/rename", api.todo),
                 post("/add_empty", api.todo),
                 post("/test", api.todo),

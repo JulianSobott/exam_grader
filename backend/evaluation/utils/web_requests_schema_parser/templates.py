@@ -99,9 +99,11 @@ class Template:
             if state == "DEFAULT":
                 text = token_text(cs)
                 out += self.indent(indent, text)
+                indent = ""
             if state == "VAR":
                 name = token_var(cs)
                 out += self.substitude(name, indent)
+                indent = ""
             if state == "INDENT":
                 indent = token_indent(cs)
             if cs.has_next():
@@ -150,9 +152,10 @@ def get_char_class(c: str):
 
 
 class Test(Template):
+    name = "Zoe"
     _template = """
 hello
-    world
+    world = $name
         triple
     """
 

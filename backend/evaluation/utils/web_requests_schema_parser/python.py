@@ -30,8 +30,19 @@ class PyRequestClass(Template):
     methods: List[PyRequestMethod]
     _template = """
 class $name(ABC):
+    _json_mapper = $json_mapper
+    
+    def __init__(self, request):
+        self.request = request
+    
+    def process_json(self, method: str):
+        return self._json_mapper[method].from_dict(self.request.get_json())
+         
     $methods
 """
+
+    def json_mapper_to_str(self):
+        return "{" + ", ".join([f"\"{m.name}\": {m.data_type}" for m in self.methods]) + "}"
 
 
 @dataclass
@@ -178,7 +189,7 @@ def communication_to_python(communication: Communication) -> List[Tree]:
         trees.append(Tree(PyVariable(response_type_name, response_type_value)))
         method = PyRequestMethod(req.method.lower(), req_class_name, response_type_name)
         methods.append(method)
-    trees.append(Tree(PyRequestClass(f"{name}Request", methods)))
+    trees.append(Tree(PyRequestClass(f"{name}RequestBase", methods)))
     return trees
 
 
