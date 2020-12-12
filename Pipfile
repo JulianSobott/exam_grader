@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+libsass = "*"
+flask = "*"
+flask-cors = "*"
+regex = "*"
+dataclasses-json = "*"
+chardet = "*"
+gitpython = "*"
+pandas = "*"
+openpyxl = "*"
+xlsxwriter = "*"
+xlrd = "*"
+matplotlib = "*"
+lark-parser = "*"
+pydot = "*"
+pyyaml = "*"
+requests = "*"
+autopep8 = "*"
+
+[dev-packages]
