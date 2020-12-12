@@ -9,51 +9,86 @@ from utils.web_requests_schema_parser.templates import Template
 
 
 @dataclass
-class PyRequestMethod(Template):
+class PyHandleMethod(Template):
     name: str
     data_type: str
     return_type: str
     _template = """
 @abstractmethod
-def $name(self, data: $data_type) -> "$return_type":
+def handle_$name(self, data: $data_type) -> "$return_type":
     ...
 """
 
 
 @dataclass
+class PyRequestMethod(Template):
+    http_method: str
+    data_type: str
+    attributes: List["PyAttribute"]
+    response_type: str
+    code_class_map: dict
+    _template = """
+@classmethod
+def $http_method(cls, $attributes) -> Tuple["$response_type", str]:
+    data = $data_type($attribute_names)
+    res = cls._request("$http_method", data)
+    code_class_map = $code_class_map
+    if res.status_code not in code_class_map:
+        return res, "Unknown status returned"
+    code_class = code_class_map[res.status_code]
+    return code_class.from_json(res.text), ""
+"""
+
+    def code_class_map_to_str(self):
+        return "{" + ", ".join(f"{code}: {class_}" for code, class_ in self.code_class_map.items()) + "}"
+
+    def attributes_to_str(self):
+        return ", ".join([a.to_str() for a in self.attributes])
+
+    def attribute_names_to_str(self):
+        return ", ".join([a.name for a in self.attributes])
+
+
+@dataclass
 class PyRequestClass(Template):
     name: str
-    methods: List[PyRequestMethod]
-    url = "http://localhost/"
+    handle_methods: List[PyHandleMethod]
+    request_methods: List[PyRequestMethod]
+    uri: str
     _template = """
 class $name(ABC):
     _json_mapper = $json_mapper
-    _url = "$url"
+    _url = "http://127.0.0.1:5000/api/v1$uri"
     
     def __init__(self, request):
         self.request = request
     
     @classmethod
-    def handle_request(cls, request):
+    def _handle_request(cls, request):
         method = request.method.lower()
         instance = cls(request)
         data_class = instance._json_mapper[method]
-        json_data = request.get_json()
+        json_data = request.data
         data = None
         valid_json = False
         try:
-            data = data_class.from_dict(json_data)
+            data = data_class.from_json(json_data)
             valid_json = True
         except:
             pass
         response = instance.__getattribute__(f"handle_{method}")(data)
-        return response.to_json()
+        return Response(response.to_json(), status=response.status_code)
+    
+    @classmethod
+    def _request(cls, method, data):
+        return requests.request(method, cls._url, data=data.to_json())
         
-    $methods
+    $handle_methods
+    $request_methods
 """
 
     def json_mapper_to_str(self):
-        return "{" + ", ".join([f"\"{m.name}\": {m.data_type}" for m in self.methods]) + "}"
+        return "{" + ", ".join([f"\"{m.name}\": {m.data_type}" for m in self.handle_methods]) + "}"
 
 
 @dataclass
@@ -113,8 +148,10 @@ class PyFile(Template):
 from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 from abc import ABC, abstractmethod
+from flask import Response
+import requests
 
 
 __all__ = $all
@@ -176,30 +213,45 @@ def communication_to_python(communication: Communication) -> List[Tree]:
     name = to_camel_case(communication.name)
     endpoint_name = f"{name}RequestBase"
     trees = []
-    methods = []
+    handle_methods = []
+    request_methods = []
     for req in communication.requests:
         gen_class_name = f"{name}{req.method}"
-        attributes, children = body_to_python(req.parameters)
+        req_attributes, children = body_to_python(req.parameters)
         req_class_name = f"{gen_class_name}Request"
-        py_class = PyDataClass(req_class_name, attributes)
+        py_class = PyDataClass(req_class_name, req_attributes)
         trees.append(Tree(py_class, children))
 
         resp_class_names = []
+        resp_code_class_map = {}
         for resp in req.responses:
             attributes, children = body_to_python(resp.body)
             class_name = f"{gen_class_name}{resp.code}Response"
             resp_class_names.append(class_name)
+            attributes.append(PyAttribute("status_code", "int", resp.code))
             py_class = PyDataClass(class_name, attributes)
             trees.append(Tree(py_class, children))
+            resp_code_class_map[resp.code] = class_name
 
         response_type_name = f"{gen_class_name}Response"
         response_type_value = f"Union[" + ", ".join(resp_class_names) + "]"
         trees.append(Tree(PyVariable(response_type_name, response_type_value)))
-        method = PyRequestMethod(req.method.lower(), req_class_name, response_type_name)
-        methods.append(method)
-    request_class = PyRequestClass(endpoint_name, methods)
+        method = PyHandleMethod(req.method.lower(), req_class_name, response_type_name)
+        handle_methods.append(method)
+        request_method = PyRequestMethod(req.method.lower(), req_class_name, req_attributes, response_type_name,
+                                         resp_code_class_map)
+        request_methods.append(request_method)
+    uri = get_simple_attribute(communication.attributes, "uri", communication.name)
+    request_class = PyRequestClass(endpoint_name, handle_methods, request_methods, uri)
     trees.append(Tree(request_class))
     return trees
+
+
+def get_simple_attribute(attributes: List[SimpleAttribute], name: str, default=None):
+    for a in attributes:
+        if a.key == name:
+            return a.value
+    return default
 
 
 def type_definition_to_python(type_definition: TypeDefinition) -> Tree:

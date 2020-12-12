@@ -8,7 +8,7 @@ from tool_api import *
 
 class PrepareRequest(PrepareRequestBase):
 
-    def post(self, data: PreparePOSTRequest) -> "PreparePOSTResponse":
+    def handle_post(self, data: PreparePOSTRequest) -> "PreparePOSTResponse":
         zip_path = Path(data.zip_url)
         # since canvas api doesnt provide a simple way to download the zip we must manually download it and provide the
         # local path to the zip file
