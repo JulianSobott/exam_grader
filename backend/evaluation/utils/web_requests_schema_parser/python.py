@@ -13,7 +13,7 @@ class PyAttribute(Template):
     init_code: str = None
     _template = "$name: $type $init_code"
 
-    def initializor_code_to_str(self):
+    def init_code_to_str(self):
         return f"= {self.init_code}" if self.init_code else ""
 
 
@@ -22,8 +22,8 @@ class PyClass(Template):
     name: str
     attributes: List[PyAttribute]
     _template = """
-@dataclass
 @dataclass_json
+@dataclass
 class $name:
     $attributes
 """
@@ -121,12 +121,17 @@ def communication_to_python(communication: Communication) -> List[Tree]:
             class_name = f"{to_camel_case(name)}{req.method}Request"
             py_class = PyClass(class_name, attributes)
             trees.append(Tree(py_class, children))
+    resp_class_names = []
     for resp in communication.response.responses:
         if resp.body:
             attributes, children = body_to_python(resp.body)
             class_name = f"{to_camel_case(name)}{resp.code}Response"
+            resp_class_names.append(class_name)
             py_class = PyClass(class_name, attributes)
             trees.append(Tree(py_class, children))
+    class_name = f"{to_camel_case(name)}Response"
+    attr_type = f"Union[" + ", ".join(['"' + name + '"' for name in resp_class_names]) + "]"
+    trees.append(Tree(PyClass(class_name, [PyAttribute("data", attr_type)])))
     return trees
 
 

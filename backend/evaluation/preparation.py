@@ -2,13 +2,13 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from typing import List
 
 import chardet
 
 from common import iter_submissions_folders, empty_java_classes, structured_submissions, raw_submissions
+from schema_classes.tools_schema import FileError, FileErrorType
 from test_code_mapping import required_files
 from utils.p_types import error, new_error
 from utils.project_logging import get_logger
@@ -59,39 +59,27 @@ def cli_output_file_failures():
             print("")
         prev_submission_name = f.submission_name
         path = f"{f.submission_name}/{f.file_name}"
-        mapping = {FailureType.WRONG_NAMED: "Wrong named", FailureType.MISSING: "Missing"}
+        mapping = {FileErrorType.WRONG_NAMED: "Wrong named", FileErrorType.MISSING: "Missing"}
         logger.info(f"{mapping[f.failure_type]} file: {path}")
 
 
-class FailureType(Enum):
-    MISSING = 0
-    WRONG_NAMED = 1
-
-
-@dataclass
-class FileFailure:
-    failure_type: FailureType
-    file_name: str
-    submission_name: str
-
-
-def get_file_failures() -> List[FileFailure]:
+def get_file_failures() -> List[FileError]:
     failures = []
     for sub_folder in iter_submissions_folders():
         actual_files = os.listdir(sub_folder.absolute())
         for f in required_files:
             if f not in actual_files:
-                failures.append(FileFailure(FailureType.MISSING, f, sub_folder.name))
+                failures.append(FileError(sub_folder.name, f, FileErrorType.MISSING))
         for f in actual_files:
             if f not in required_files:
-                failures.append(FileFailure(FailureType.WRONG_NAMED, f, sub_folder.name))
+                failures.append(FileError(sub_folder.name, f, FileErrorType.WRONG_NAMED))
     return failures
 
 
 def fill_missing_files():
     logger.info("Filling missing files...")
     for fail in get_file_failures():
-        if fail.failure_type == FailureType.MISSING:
+        if fail.failure_type == FileErrorType.MISSING:
             logger.info(f"Missing file: {fail.submission_name}/{fail.file_name} ."
                         f" An minimal compileable class will be added")
             shutil.copy2(empty_java_classes.joinpath(fail.file_name),

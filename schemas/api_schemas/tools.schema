@@ -14,6 +14,9 @@ prepare
     <-
         200
             file_errors[]: $FileError
+        400
+            error: {FILE_NOT_FOUND} PrepareError
+            description: str
 
 test_files
     ->
