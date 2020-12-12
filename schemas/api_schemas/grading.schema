@@ -1,0 +1,15 @@
+
+
+server = http://localhost/api/v1
+
+submissions
+    uri: /grading/submissions
+    GET
+        ->
+            ?submission_names[]: str
+            options: object SubmissionOption
+                include_code_snippets: bool
+        <-
+            200
+                submissions[]: object Submission
+                    submission_name: str
