@@ -1,15 +1,11 @@
 from dataclasses import field
 from typing import Tuple
 
+import autopep8
+
 from utils.web_requests_schema_parser.intermediate_representation import *
 from utils.web_requests_schema_parser.parser import parse
 from utils.web_requests_schema_parser.templates import Template
-
-
-class Request:
-
-    def get(self, data: 'RequestGet') -> 'Response':
-        ...
 
 
 @dataclass
@@ -103,9 +99,7 @@ class $name(Enum):
 
 @dataclass
 class PyFile(Template):
-    classes: List[PyDataClass]
-    enums: List[PyEnum]
-    variables: List[PyVariable]
+    objects: "Tree"
     _template = """
 # Auto generated code by script
 from dataclasses_json import dataclass_json
@@ -117,13 +111,19 @@ from abc import ABC, abstractmethod
 
 __all__ = $all
 
-$enums
-$classes
-$variables
+
+$objects
 """
 
     def all_to_str(self):
-        names = ['"' + c.name + '"' for c in self.classes + self.enums + self.variables]
+        elements = []
+        queue = [self.objects]
+        while queue:
+            tree = queue.pop()
+            queue.extend(tree.children)
+            if tree.element:
+                elements.append(tree.element)
+        names = ['"' + c.name + '"' for c in elements]
         return "[" + ", ".join(names) + "]"
 
 
@@ -136,23 +136,18 @@ type_mapping = {
 
 
 @dataclass
-class Tree:
+class Tree(Template):
     element: Template = None
     children: List["Tree"] = field(default_factory=list)
+    _template = """
+$children
 
-    def extract_enums_and_classes(self, enums: List[PyEnum], classes: List[PyDataClass], variables: List[PyVariable]):
-        for child in self.children:
-            child.extract_enums_and_classes(enums, classes, variables)
-        if self.element is None:
-            return
-        if isinstance(self.element, PyDataClass) or isinstance(self.element, PyRequestClass):
-            classes.append(self.element)
-        elif isinstance(self.element, PyEnum):
-            enums.append(self.element)
-        elif isinstance(self.element, PyVariable):
-            variables.append(self.element)
-        else:
-            raise TypeError(self.element)
+
+$element    
+"""
+
+    def children_to_str(self):
+        return "\n".join([s.to_str().strip() for s in self.children])
 
 
 def schema_to_python(text: str) -> str:
@@ -164,16 +159,14 @@ def schema_to_python(text: str) -> str:
     for communication in file.communications:
         children = communication_to_python(communication)
         root.children.extend(children)
-    classes = []
-    enums = []
-    variables = []
-    root.extract_enums_and_classes(enums, classes, variables)
-    py_file = PyFile(classes, enums, variables)
-    return py_file.to_str()
+    py_file = PyFile(root)
+    py_code = py_file.to_str()
+    return autopep8.fix_code(py_code, options={"max_line_length": 120, "aggressive": 1})
 
 
 def communication_to_python(communication: Communication) -> List[Tree]:
     name = to_camel_case(communication.name)
+    endpoint_name = f"{name}RequestBase"
     trees = []
     methods = []
     for req in communication.requests:
@@ -196,7 +189,8 @@ def communication_to_python(communication: Communication) -> List[Tree]:
         trees.append(Tree(PyVariable(response_type_name, response_type_value)))
         method = PyRequestMethod(req.method.lower(), req_class_name, response_type_name)
         methods.append(method)
-    trees.append(Tree(PyRequestClass(f"{name}RequestBase", methods)))
+    request_class = PyRequestClass(endpoint_name, methods)
+    trees.append(Tree(request_class))
     return trees
 
 

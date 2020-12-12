@@ -20,5 +20,6 @@ lark-parser = "*"
 pydot = "*"
 pyyaml = "*"
 requests = "*"
+autopep8 = "*"
 
 [dev-packages]
