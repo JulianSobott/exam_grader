@@ -31,16 +31,22 @@ class $name(ABC):
     def __init__(self, request):
         self.request = request
     
-    def process_json(self, method: str):
-        data_class = self._json_mapper[method]
-        json_data = self.request.get_json()
-        if json_data is None:
-            return data_class(), None
+    @classmethod
+    def handle_request(cls, request):
+        method = request.method.lower()
+        instance = cls(request)
+        data_class = instance._json_mapper[method]
+        json_data = request.get_json()
+        data = None
+        valid_json = False
         try:
-            return data_class.from_dict(json_data), None
+            data = data_class.from_dict(json_data)
+            valid_json = True
         except:
-            return None, "Wrong json format"
-         
+            pass
+        response = instance.__getattribute__(f"handle_{method}")(data)
+        return response.to_json()
+        
     $methods
 """
 
