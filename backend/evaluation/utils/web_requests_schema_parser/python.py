@@ -28,7 +28,7 @@ class PyRequestClass(Template):
     _template = """
 class $name(ABC):
     _json_mapper = $json_mapper
-    _url = $url
+    _url = "$url"
     
     def __init__(self, request):
         self.request = request
