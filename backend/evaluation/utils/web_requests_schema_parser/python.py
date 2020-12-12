@@ -15,7 +15,7 @@ class PyHandleMethod(Template):
     return_type: str
     _template = """
 @abstractmethod
-def handle_$name(self, data: $data_type) -> "$return_type":
+def handle_$name(self, data: "$data_type") -> "$return_type":
     ...
 """
 
@@ -96,7 +96,7 @@ class PyAttribute(Template):
     name: str
     type: str
     init_code: str = None
-    _template = "$name: $type $init_code"
+    _template = "$name: \"$type\" $init_code"
 
     def init_code_to_str(self):
         return f"= {self.init_code}" if self.init_code else ""

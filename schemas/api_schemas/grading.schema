@@ -22,6 +22,11 @@ typedef object SubmissionData
     ?error_message: str
     ?failed_task: str
 
+typedef object Identifier
+    name: str
+    type: {SUBMISSION, TASK, SUB_TASK} IdentifierType
+    ?parent: $Identifier
+
 
 server = http://localhost/api/v1
 
@@ -35,3 +40,31 @@ submissions
         <-
             200
                 submissions[]: $SubmissionData
+
+points
+    uri: /grading/points
+    POST
+        ->
+            identifier: $Identifier
+            points: float
+        <-
+            200
+
+comment
+    uri: /grading/comment
+    POST
+        ->
+            identifier: $Identifier
+            comment: str
+        <-
+            200
+
+bookmark
+    uri: /grading/bookmark
+    POST
+        ->
+            identifier: $Identifier
+        <-
+            200
+
+
