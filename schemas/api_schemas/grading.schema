@@ -1,3 +1,26 @@
+typedef object SubmissionData
+    name: str
+    passed: bool
+    max_points: float
+    tasks[]: object TaskData
+        name: str
+        passed: bool
+        num_tests: int
+        num_passed: int
+        max_points: float
+        sub_tasks[]: object SubTaskData
+            name: str
+            max_points: float
+            auto_points: float
+            passed: bool
+            ?error_message: str
+            ?code_snippets[]: object CodeSnippet
+                name: str
+                class_name: str
+                code: str
+                is_original: bool
+    ?error_message: str
+    ?failed_task: str
 
 
 server = http://localhost/api/v1
@@ -11,5 +34,4 @@ submissions
                 include_code_snippets: bool
         <-
             200
-                submissions[]: object Submission
-                    submission_name: str
+                submissions[]: $SubmissionData
