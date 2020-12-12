@@ -7,6 +7,7 @@ from utils.web_routing import routes, group, get, post
 app = Flask(__name__)
 CORS(app)
 
+
 routes(
     app,
     group(
@@ -24,9 +25,8 @@ routes(
             group(
                 "/tools",
                 post("/prepare", api.tools.PrepareRequest),
-                post("/rename", api.todo),
-                post("/add_empty", api.todo),
-                post("/test", api.todo),
+                post("/rename_and_fill", api.tools.RenameAndFillRequest),
+                get("/test_files", api.tools.TestFilesRequest),
             ),
             group(
                 "/grading",

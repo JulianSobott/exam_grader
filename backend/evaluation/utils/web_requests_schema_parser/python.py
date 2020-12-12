@@ -36,7 +36,14 @@ class $name(ABC):
         self.request = request
     
     def process_json(self, method: str):
-        return self._json_mapper[method].from_dict(self.request.get_json())
+        data_class = self._json_mapper[method]
+        json_data = self.request.get_json()
+        if json_data is None:
+            return data_class(), None
+        try:
+            return data_class.from_dict(json_data), None
+        except:
+            return None, "Wrong json format"
          
     $methods
 """

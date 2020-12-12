@@ -2,8 +2,7 @@ import zipfile
 from pathlib import Path
 
 from common import raw_submissions
-from schema_classes import PreparePOSTRequest
-from schema_classes.tools_schema import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response, PrepareError
+from schema_classes.tools_schema import *
 from tool_api import *
 
 
@@ -28,3 +27,19 @@ class PrepareRequest(PrepareRequestBase):
             pass  # TODO
         failures = get_file_failures()
         return PreparePOST200Response(failures)
+
+
+class TestFilesRequest(TestFilesRequestBase):
+
+    def get(self, data: TestFilesGETRequest) -> "TestFilesGETResponse":
+        failures = get_file_failures()
+        return TestFilesGET200Response(failures)
+
+
+class RenameAndFillRequest(RenameAndFillRequestBase):
+
+    def post(self, data: RenameAndFillPOSTRequest) -> "RenameAndFillPOSTResponse":
+        rename_files(data.files)
+        fill_missing_files()
+        failures = get_file_failures()
+        return RenameAndFillPOST200Response(failures)

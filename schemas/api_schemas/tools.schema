@@ -3,10 +3,10 @@ typedef object FileError
     file_name: str
     failure_type: {WRONG_NAMED, MISSING} FileErrorType
 
-api_uri = /api/v1/tools
+api_uri = /api/v1
 
 prepare
-    uri: $api_uri/prepare
+    group: $api_uri/tools
     description: process submissions. Must be the first step when starting
     POST
         ->
@@ -19,6 +19,7 @@ prepare
                 description: str
 
 test_files
+    group: $api_uri/tools
     GET
         ->
         <-
@@ -26,12 +27,13 @@ test_files
                 file_errors[]: $FileError
 
 rename_and_fill
+    group: $api_uri/tools
     POST
         ->
             files[]: object RenameFile
-                submission: str
-                from_name: str
-                to_name: str
+                submission_name: str
+                original_name: str
+                new_name: str
         <-
             200
                 file_errors[]: $FileError

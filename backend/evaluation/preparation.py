@@ -1,14 +1,13 @@
 import os
 import re
 import shutil
-from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
 import chardet
 
 from common import iter_submissions_folders, empty_java_classes, structured_submissions, raw_submissions
-from schema_classes.tools_schema import FileError, FileErrorType
+from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
 from test_code_mapping import required_files
 from utils.p_types import error, new_error
 from utils.project_logging import get_logger
@@ -76,31 +75,27 @@ def get_file_failures() -> List[FileError]:
     return failures
 
 
-def fill_missing_files():
+def fill_missing_files() -> error:
     logger.info("Filling missing files...")
     for fail in get_file_failures():
         if fail.failure_type == FileErrorType.MISSING:
+            src = empty_java_classes.joinpath(fail.file_name)
+            if not src.exists():
+                return new_error(f"src file does not exist: {src}", logger)
             logger.info(f"Missing file: {fail.submission_name}/{fail.file_name} ."
                         f" An minimal compileable class will be added")
-            shutil.copy2(empty_java_classes.joinpath(fail.file_name),
+            shutil.copy2(src,
                          structured_submissions.joinpath(fail.submission_name))
 
 
-@dataclass
-class FileRename:
-    submission_name: str
-    old: str
-    new: str
-
-
-def rename_files(renames: List[FileRename]) -> error:
+def rename_files(renames: List[RenameFile]) -> error:
     moves = []
     for rename in renames:
         sub_folder = structured_submissions.joinpath(rename.submission_name)
-        old_file = sub_folder.joinpath(rename.old)
+        old_file = sub_folder.joinpath(rename.original_name)
         if not old_file.exists():
             return new_error(f"file: {old_file} does not exist therefore can't be renamed", logger)
-        moves.append((old_file, sub_folder.joinpath(rename.new)))
+        moves.append((old_file, sub_folder.joinpath(rename.new_name)))
         # no files renamed, when one fails
     for move in moves:
         shutil.move(*move)
