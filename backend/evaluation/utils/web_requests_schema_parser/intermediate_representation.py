@@ -60,33 +60,24 @@ class Body:
 
 
 @dataclass
-class RequestMethod:
-    method: str  # TODO: enum http methods
-    body: Body
-
-
-@dataclass
-class Request:
-    requests: List[RequestMethod]
-
-
-@dataclass
-class ResponseBody:
+class Response:
     code: int
     body: Body
 
 
 @dataclass
-class Response:
-    responses: List[ResponseBody]
+class Request:
+    method: str
+    parameters: Body
+    responses: List[Response]
+    attributes: List["SimpleAttribute"]
 
 
 @dataclass
 class Communication:
     name: str
     attributes: List["SimpleAttribute"]
-    request: Request
-    response: Response
+    requests: List[Request]
 
 
 @dataclass

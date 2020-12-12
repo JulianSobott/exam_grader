@@ -6,6 +6,34 @@ from utils.web_requests_schema_parser.parser import parse
 from utils.web_requests_schema_parser.templates import Template
 
 
+class Request:
+
+    def get(self, data: 'RequestGet') -> 'Response':
+        ...
+
+
+@dataclass
+class PyRequestMethod(Template):
+    name: str
+    data_type: str
+    return_type: str
+    _template = """
+@abstractmethod
+def $name(self, data: $data_type) -> "$return_type":
+    ...
+"""
+
+
+@dataclass
+class PyRequestClass(Template):
+    name: str
+    methods: List[PyRequestMethod]
+    _template = """
+class $name(ABC):
+    $methods
+"""
+
+
 @dataclass
 class PyAttribute(Template):
     name: str
@@ -18,7 +46,14 @@ class PyAttribute(Template):
 
 
 @dataclass
-class PyClass(Template):
+class PyVariable(Template):
+    name: str
+    value: str
+    _template = "$name = $value"
+
+
+@dataclass
+class PyDataClass(Template):
     name: str
     attributes: List[PyAttribute]
     _template = """
@@ -50,23 +85,27 @@ class $name(Enum):
 
 @dataclass
 class PyFile(Template):
-    classes: List[PyClass]
+    classes: List[PyDataClass]
     enums: List[PyEnum]
+    variables: List[PyVariable]
     _template = """
 # Auto generated code by script
 from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union, Optional
+from abc import ABC, abstractmethod
+
 
 __all__ = $all
 
 $enums
 $classes
+$variables
 """
 
     def all_to_str(self):
-        names = ['"' + c.name + '"' for c in self.classes + self.enums]
+        names = ['"' + c.name + '"' for c in self.classes + self.enums + self.variables]
         return "[" + ", ".join(names) + "]"
 
 
@@ -83,15 +122,17 @@ class Tree:
     element: Template = None
     children: List["Tree"] = field(default_factory=list)
 
-    def extract_enums_and_classes(self, enums: List[PyEnum], classes: List[PyClass]):
+    def extract_enums_and_classes(self, enums: List[PyEnum], classes: List[PyDataClass], variables: List[PyVariable]):
         for child in self.children:
-            child.extract_enums_and_classes(enums, classes)
+            child.extract_enums_and_classes(enums, classes, variables)
         if self.element is None:
             return
-        if isinstance(self.element, PyClass):
+        if isinstance(self.element, PyDataClass) or isinstance(self.element, PyRequestClass):
             classes.append(self.element)
         elif isinstance(self.element, PyEnum):
             enums.append(self.element)
+        elif isinstance(self.element, PyVariable):
+            variables.append(self.element)
         else:
             raise TypeError(self.element)
 
@@ -107,31 +148,37 @@ def schema_to_python(text: str) -> str:
         root.children.extend(children)
     classes = []
     enums = []
-    root.extract_enums_and_classes(enums, classes)
-    py_file = PyFile(classes, enums)
+    variables = []
+    root.extract_enums_and_classes(enums, classes, variables)
+    py_file = PyFile(classes, enums, variables)
     return py_file.to_str()
 
 
 def communication_to_python(communication: Communication) -> List[Tree]:
-    name = communication.name
+    name = to_camel_case(communication.name)
     trees = []
-    for req in communication.request.requests:
-        if req.body:
-            attributes, children = body_to_python(req.body)
-            class_name = f"{to_camel_case(name)}{req.method}Request"
-            py_class = PyClass(class_name, attributes)
-            trees.append(Tree(py_class, children))
-    resp_class_names = []
-    for resp in communication.response.responses:
-        if resp.body:
+    methods = []
+    for req in communication.requests:
+        gen_class_name = f"{name}{req.method}"
+        attributes, children = body_to_python(req.parameters)
+        req_class_name = f"{gen_class_name}Request"
+        py_class = PyDataClass(req_class_name, attributes)
+        trees.append(Tree(py_class, children))
+
+        resp_class_names = []
+        for resp in req.responses:
             attributes, children = body_to_python(resp.body)
-            class_name = f"{to_camel_case(name)}{resp.code}Response"
+            class_name = f"{gen_class_name}{resp.code}Response"
             resp_class_names.append(class_name)
-            py_class = PyClass(class_name, attributes)
+            py_class = PyDataClass(class_name, attributes)
             trees.append(Tree(py_class, children))
-    class_name = f"{to_camel_case(name)}Response"
-    attr_type = f"Union[" + ", ".join(['"' + name + '"' for name in resp_class_names]) + "]"
-    trees.append(Tree(PyClass(class_name, [PyAttribute("data", attr_type)])))
+
+        response_type_name = f"{gen_class_name}Response"
+        response_type_value = f"Union[" + ", ".join(resp_class_names) + "]"
+        trees.append(Tree(PyVariable(response_type_name, response_type_value)))
+        method = PyRequestMethod(req.method.lower(), req_class_name, response_type_name)
+        methods.append(method)
+    trees.append(Tree(PyRequestClass(f"{name}Request", methods)))
     return trees
 
 
@@ -139,7 +186,7 @@ def type_definition_to_python(type_definition: TypeDefinition) -> Tree:
     name = type_definition.name
     if type_definition.type_type == ObjectType:
         attributes, children = body_to_python(type_definition.data.body)
-        return Tree(PyClass(name, attributes), children)
+        return Tree(PyDataClass(name, attributes), children)
     elif type_definition.type_type == EnumType:
         return Tree(PyEnum(type_definition.name, type_definition.data.values))
     else:
@@ -149,12 +196,14 @@ def type_definition_to_python(type_definition: TypeDefinition) -> Tree:
 def body_to_python(body: Body) -> Tuple[List[PyAttribute], List[Tree]]:
     attributes = []
     children = []
+    if body is None:
+        return attributes, children
     for attr in body.attributes:
         t = attr.type_definition.type_type
         if t == ObjectType or t == EnumType:
             child = type_definition_to_python(attr.type_definition)
             children.append(child)
-            assert isinstance(child.element, PyClass) or isinstance(child.element, PyEnum)
+            assert isinstance(child.element, PyDataClass) or isinstance(child.element, PyEnum)
             py_type = child.element.name
         elif t == ReferenceType:
             py_type = attr.type_definition.data.name  # TODO

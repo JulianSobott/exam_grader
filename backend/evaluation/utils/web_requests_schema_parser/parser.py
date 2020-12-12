@@ -28,9 +28,9 @@ typedef object my_type
 
 prepare
     uri: /api/v1/prepare
-    description: do something   cool=)=
-    ->
-        GET
+    POST
+        description: do something   cool=)=
+        ->
             ?hello[]: $my_type   # this is optional
             val1: str
             val2: {NOT_VALID, INVALID2}
@@ -39,16 +39,16 @@ prepare
                 attr1: int
                 attr2: str
             arr[]: int
-    <-
-        200
-            world: str
+        <-
+            200
+                world: str
 # comment
 another
-    -> 
-        GET
+    GET
+        -> 
             val: int
-    <-
-        200
+        <-
+            200
 """
 
 
@@ -106,51 +106,51 @@ class MyTransformer(Visitor):
         node.transformed = node.children[0].transformed
 
     def constant(self, node: Tree):
-        node.transformed = Constant(node.children[0].value, node.children[2].value)
+        node.transformed = Constant(node.children[0].value, node.children[1].value)
 
     def communication(self, node: Tree):
         name = node.children[0].value
         attributes = node.children[1].transformed
-        request = node.children[2].transformed
-        response = node.children[3].transformed
-        node.transformed = Communication(name, attributes, request, response)
+        requests = node.children[2].transformed
+        node.transformed = Communication(name, attributes, requests)
 
-    def communication_attributes(self, node: Tree):
+    def const_attributes(self, node: Tree):
         attributes = []
         for n in node.children:
             attributes.append(n.transformed)
         node.transformed = attributes
 
-    def simple_attribute(self, node: Tree):
-        key = node.children[0].value
-        value = node.children[2].value
-        node.transformed = SimpleAttribute(key, value)
+    def requests(self, node: Tree):
+        reqs = []
+        for r in node.children:
+            reqs.append(r.transformed)
+        node.transformed = reqs
 
     def request(self, node: Tree):
-        bodies = []
-        for n in node.children[1:]:
-            bodies.append(n.transformed)
-        node.transformed = Request(bodies)
-
-    def request_method(self, node: Tree):
         method = node.children[0].value
+        attributes = node.children[1].transformed
+        parameters = node.children[2].transformed
+        responses = node.children[3].transformed
+        node.transformed = Request(method, parameters, responses, attributes)
+
+    def request_def(self, node: Tree):
         body = None
         if len(node.children) == 2:
             body = node.children[1].transformed
-        node.transformed = RequestMethod(method, body)
+        node.transformed = body
+
+    def response_def(self, node: Tree):
+        responses = []
+        for n in node.children[1:]:
+            responses.append(n.transformed)
+        node.transformed = responses
 
     def response(self, node: Tree):
-        bodies = []
-        for n in node.children[1:]:
-            bodies.append(n.transformed)
-        node.transformed = Response(bodies)
-
-    def response_body(self, node: Tree):
         status_code = int(node.children[0].value)
         body = None
         if len(node.children) == 2:
             body = node.children[1].transformed
-        node.transformed = ResponseBody(status_code, body)
+        node.transformed = Response(status_code, body)
 
     def body(self, node: Tree):
         attributes = []
@@ -216,6 +216,11 @@ class MyTransformer(Visitor):
         name = node.children[2].value
         data = self._body_to_type(node.children[3].transformed, type_type)
         node.transformed = TypeDefinition(type_type, data, name)
+
+    def simple_attribute(self, node: Tree):
+        key = node.children[0].value
+        value = node.children[2].value
+        node.transformed = SimpleAttribute(key, value)
 
     def _body_to_type(self, body: Body, type_type: type):
         return ObjectType(body)  # TODO

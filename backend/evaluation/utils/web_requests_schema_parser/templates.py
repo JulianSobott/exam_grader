@@ -52,9 +52,6 @@ delta_table = {
 
 class Template:
 
-    def __init__(self):
-        self._template = None
-
     def to_str(self):
 
         def token_var(cs: CharStream) -> str:
@@ -101,7 +98,7 @@ class Template:
                 indent = ""
             if state == "DEFAULT":
                 text = token_text(cs)
-                out += text
+                out += self.indent(indent, text)
             if state == "VAR":
                 name = token_var(cs)
                 out += self.substitude(name, indent)
@@ -116,15 +113,17 @@ class Template:
                 state = new_state
         return out
 
+    def indent(self, indentation, text: str):
+        lines = text.split("\n")
+        return "\n".join(indentation + l for l in lines)
+
     def substitude(self, var_name, indentation):
         try:
             text = self.__getattribute__(f"{var_name}_to_str")()
         except AttributeError:
             attribute = self.__getattribute__(var_name)
             text = self.sub(attribute)
-        lines = text.split("\n")
-        text = "\n".join(indentation + l for l in lines)
-        return text
+        return self.indent(indentation, text)
 
     def sub(self, value):
         """no indentation, just to string"""
@@ -148,3 +147,15 @@ def get_char_class(c: str):
     if c.isidentifier():
         return "CHAR"
     return "OTHER"
+
+
+class Test(Template):
+    _template = """
+hello
+    world
+        triple
+    """
+
+
+if __name__ == '__main__':
+    print(Test().to_str())

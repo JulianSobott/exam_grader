@@ -8,30 +8,30 @@ api_uri = /api/v1/tools
 prepare
     uri: $api_uri/prepare
     description: process submissions. Must be the first step when starting
-    ->
-        POST
+    POST
+        ->
             zip_url: str
-    <-
-        200
-            file_errors[]: $FileError
-        400
-            error: {FILE_NOT_FOUND} PrepareError
-            description: str
+        <-
+            200
+                file_errors[]: $FileError
+            400
+                error: {FILE_NOT_FOUND} PrepareError
+                description: str
 
 test_files
-    ->
-        GET
-    <-
-        200
-            file_errors[]: $FileError
+    GET
+        ->
+        <-
+            200
+                file_errors[]: $FileError
 
 rename_and_fill
-    ->
-        POST
+    POST
+        ->
             files[]: object RenameFile
                 submission: str
                 from_name: str
                 to_name: str
-    <-
-        200
-            file_errors[]: $FileError
+        <-
+            200
+                file_errors[]: $FileError
