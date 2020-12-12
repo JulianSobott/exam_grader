@@ -15,14 +15,6 @@ routes(
         group(
             "/v1",
             group(
-                "/start_page",
-                get("/state", api.start_page.state)
-            ),
-            group(
-                "/overview",
-                get("/data", api.overview.data)
-            ),
-            group(
                 "/tools",
                 post("/prepare", api.tools.PrepareRequest),
                 post("/rename_and_fill", api.tools.RenameAndFillRequest),
@@ -47,6 +39,6 @@ routes(
 )
 
 
-@app.route("/login", methods=["GET"])
+@app.route("/")
 def p():
-    req = request.get_json()
+    return "Hello"
