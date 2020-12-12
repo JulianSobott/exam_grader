@@ -38,7 +38,9 @@ routes(
     )
 )
 
-
 @app.route("/")
 def p():
     return "Hello"
+
+if __name__ == '__main__':
+    app.run(port=5000)
