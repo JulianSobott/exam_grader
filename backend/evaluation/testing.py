@@ -1,13 +1,14 @@
 import os
 import re
 import subprocess
-from datetime import datetime
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Tuple, NewType, Optional, List
 
-from common import structured_submissions, iter_submissions_folders
-from schema_classes.testing_schema import Submission, Results
-from test_results import save_test_results, load_test_results
+from dataclasses_json import dataclass_json
+
+from common import structured_submissions, iter_submissions_folders, submission_results_folder
+from config.local_config import get_local_config
+from utils.p_types import error, new_error
 from utils.project_logging import get_logger
 
 logger = get_logger(__name__)
@@ -17,24 +18,39 @@ TASK_JAVA = Task("compileJava")
 TASK_KOTLIN = Task("compileTestKotlin")
 TASK_TEST = Task("test")
 
+file_id = "0"  # automatically set if needed
+test_report_file = submission_results_folder.joinpath(f"test_results_{file_id}.json")
+
+
+@dataclass_json
+@dataclass
+class SubmissionTestResult:
+    name: str
+    passed: bool
+    error_message: Optional[str] = ""
+    failed_task: Optional[str] = ""
+
+
+@dataclass_json
+@dataclass
+class TestResults:
+    submissions: List[SubmissionTestResult]
+
 
 def run_tests_for_all():
-    start_time_all = datetime.now()
     submissions = []
     for abs_path_submission in iter_submissions_folders():
         sub = run_test_for_submission(abs_path_submission.name)
         submissions.append(sub)
-    end_time_all = datetime.now()
-    results = Results(start_time_all.isoformat(), submissions, end_time_all.isoformat())
+    results = TestResults(submissions)
     save_test_results(results)
 
 
 def run_tests_for_submissions(submissions: List[str]):
-    prev_results, error = load_test_results()
-    if error:
-        logger.warning(f"{error}")
-        start_time_all = datetime.now()
-        prev_results = Results(start_time_all.isoformat(), [], start_time_all.isoformat())
+    prev_results, err = load_test_results()
+    if err:
+        logger.warning(f"{err}")
+        prev_results = TestResults([])
     for abs_path_submission in iter_submissions_folders():
         submission = abs_path_submission.name
         if submission in submissions:
@@ -51,14 +67,10 @@ def run_tests_for_submissions(submissions: List[str]):
 
 
 def run_test_for_submission(submission: str):
-    start_time_submission = datetime.now()
     logger.info(f"[{submission}] testing: {submission} ...")
     res = run_tests(submission)
     ret, failed = failed_task(res, submission)
-    end_time_submission = datetime.now()
-    return Submission(submission, start_time_submission.isoformat(), end_time_submission.isoformat(), not failed,
-                      ret[1] if failed else None,
-                      ret[0] if failed else None)
+    return SubmissionTestResult(submission, not failed, ret[1] if failed else None, ret[0] if failed else None)
 
 
 def run_tests(submission_name: str) -> subprocess.CompletedProcess:
@@ -67,7 +79,7 @@ def run_tests(submission_name: str) -> subprocess.CompletedProcess:
     try:
         res = subprocess.run(
             command,
-            cwd=Path(__file__).parent.parent.parent,
+            cwd=get_local_config().reference_project,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=60,
@@ -102,15 +114,16 @@ def extract_error_message(output: str, task: str, stderr_content: str) -> Tuple[
 
 
 def failed_task(res: subprocess.CompletedProcess, submission: str) -> Tuple[Optional[Tuple[Task, str]], bool]:
+    try:
+        err_output = str(res.stderr, encoding='utf8')
+    except:
+        err_output = str(res.stderr)
+    logger.debug(f"Error message: {err_output}")
     failed_tasks = re.findall(r"> Task :(?P<task_name>\S*) FAILED", str(res.stdout, encoding="utf8"))
     if len(failed_tasks) != 0:
         task = failed_tasks[0]
         logger.info(f"[{submission}] failed Task: {task}")
         output = str(res.stdout, encoding='utf8')
-        try:
-            err_output = str(res.stderr, encoding='utf8')
-        except:
-            err_output = str(res.stderr)
         err_msg, found = extract_error_message(output, task, err_output)
         if found:
             logger.debug(f"[{submission}] Error message:\n{err_msg}")
@@ -121,6 +134,22 @@ def failed_task(res: subprocess.CompletedProcess, submission: str) -> Tuple[Opti
     else:
         logger.info(f"[{submission}] Passed all tests")
         return None, False
+
+
+def save_test_results(results: TestResults) -> None:
+    test_report_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(test_report_file, "w") as f:
+        f.write(results.to_json())
+
+
+def load_test_results() -> Tuple[Optional[TestResults], error]:
+    try:
+        with open(test_report_file, "r") as f:
+            return TestResults.from_json(f.read()), None
+    except FileNotFoundError as e:
+        return None, new_error(str(e))
+    except Exception as e:
+        return None, new_error(str(e))
 
 
 if __name__ == '__main__':

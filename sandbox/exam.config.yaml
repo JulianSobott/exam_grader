@@ -1,0 +1,38 @@
+---
+tasks:
+  1:
+    class_name: MyClass1
+    subtasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code_snippets:
+          - code_type: METHOD
+            name: getNumber
+          - code_type: CONSTRUCTOR
+          - code_type: ATTRIBUTES
+          - code_type: CLASS_HEADER
+      b:
+        description: Another cool program
+        points: 1
+        code_snippets:
+          - code_type: CLASS_HEADER
+  2:
+    class_name: MyClass2
+    subtasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code_snippets:
+          - code_type: METHOD
+            name: getNumbers
+          - code_type: ATTRIBUTES
+          - code_type: CLASS_HEADER
+      b:
+        description: Another cool program
+        points: 1
+        code_snippets:
+          - code_type: METHOD
+            name: getN
