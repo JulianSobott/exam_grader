@@ -41,13 +41,30 @@ class ExamConfig:
     tasks: Dict[str, TaskConfig]
 
 
-def load_config() -> Tuple[Optional[ExamConfig], error]:
-    path = get_local_config().reference_project.joinpath("exam.config.yaml")
-    if not path.exists():
-        return None, new_error(f"Path not found: {path}")
-    with open(path, "r") as f:
-        data = yaml.safe_load(f)
-        try:
-            return ExamConfig.from_dict(data), None
-        except KeyError as e:
-            return None, new_error(f"Wrong formatted config: {e}")
+config = None
+
+
+def get_exam_config() -> Tuple[Optional[ExamConfig], error]:
+    global config
+    if not config:
+        path = get_local_config().reference_project.joinpath("exam.config.yaml")
+        if not path.exists():
+            return None, new_error(f"Path not found: {path}")
+        with open(path, "r") as f:
+            data = yaml.safe_load(f)
+            try:
+                config = ExamConfig.from_dict(data)
+                return config, None
+            except KeyError as e:
+                return None, new_error(f"Wrong formatted config: {e}")
+    return config, None
+
+
+def get_required_files() -> Tuple[Optional[List[str]], error]:
+    conf, err = get_exam_config()
+    if err:
+        return None, err
+    files = []
+    for t in conf.tasks:
+        files.append(f"{t}.java")
+    return files, None

@@ -2,33 +2,39 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Tuple
 
 import chardet
 
 from common import iter_submissions_folders, empty_java_classes, structured_submissions, raw_submissions
+from config.exam_config import get_required_files
 from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
-from test_code_mapping import required_files
 from utils.p_types import error, new_error
 from utils.project_logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def copy_raw_to_structured() -> error:
+def copy_raw_to_structured(raw_folder: Path, structured_folder: Path) -> error:
+    """
+    No files are copied, when one or more files are not recognized as submission files. i.e. do not have a file name,
+    that is matched by the regular expression.
+    :param raw_folder:
+    :param structured_folder:
+    :return:
+    """
     file_regex = re.compile(r"(?P<students_name>\w+)(?P<mat_nr>[0-9]{4})_question_\d+_\d+_(?P<file_name>.*)")
-    if not raw_submissions.exists():
-        return new_error(f"Raw folder does not exist: {raw_submissions}", logger)
-    for file in raw_submissions.iterdir():
+    raw_folder.mkdir(parents=True, exist_ok=True)
+    for file in raw_folder.iterdir():
         match = file_regex.match(file.name)
         if not match:
             return new_error(f"Invalid file name: {file.name}", logger)
     logger.info("Copying files...")
-    for file in raw_submissions.iterdir():
+    for file in raw_folder.iterdir():
         match = file_regex.match(file.name)
         submission_name = f"{match.group('students_name')}-{match.group('mat_nr')}"
         file_name = match.group('file_name')
-        sub_folder = structured_submissions.joinpath(submission_name)
+        sub_folder = structured_folder.joinpath(submission_name)
         sub_folder.mkdir(parents=True, exist_ok=True)
         src = file
         dst = sub_folder.joinpath(file_name)
@@ -36,6 +42,10 @@ def copy_raw_to_structured() -> error:
             _copy_file_utf8(src, dst)
         else:
             logger.debug(f"File already exists and is skipped: {dst}")
+
+
+def task_copy_raw_to_structured() -> error:
+    return copy_raw_to_structured(raw_submissions, structured_submissions)
 
 
 def _copy_file_utf8(src: Path, dst: Path, ):
@@ -51,7 +61,10 @@ def _copy_file_utf8(src: Path, dst: Path, ):
 
 def cli_output_file_failures():
     logger.info("Testing filenames...")
-    fails = get_file_failures()
+    fails, err = get_file_failures()
+    if err:
+        logger.error(err)
+        return
     prev_submission_name = ""
     for f in sorted(fails, key=lambda file: f.submission_name):
         if f.submission_name != prev_submission_name:
@@ -62,8 +75,11 @@ def cli_output_file_failures():
         logger.info(f"{mapping[f.failure_type]} file: {path}")
 
 
-def get_file_failures() -> List[FileError]:
+def get_file_failures() -> Tuple[Optional[List[FileError]], error]:
     failures = []
+    required_files, err = get_required_files()
+    if err:
+        return None, err
     for sub_folder in iter_submissions_folders():
         actual_files = os.listdir(sub_folder.absolute())
         for f in required_files:
@@ -72,12 +88,15 @@ def get_file_failures() -> List[FileError]:
         for f in actual_files:
             if f not in required_files:
                 failures.append(FileError(sub_folder.name, f, FileErrorType.WRONG_NAMED))
-    return failures
+    return failures, None
 
 
 def fill_missing_files() -> error:
+    failures, err = get_file_failures()
+    if err:
+        return err
     logger.info("Filling missing files...")
-    for fail in get_file_failures():
+    for fail in failures:
         if fail.failure_type == FileErrorType.MISSING:
             src = empty_java_classes.joinpath(fail.file_name)
             if not src.exists():
