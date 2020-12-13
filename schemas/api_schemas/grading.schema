@@ -28,8 +28,7 @@ typedef object Identifier
     type: {SUBMISSION, TASK, SUB_TASK} IdentifierType
     ?parent: $Identifier
 
-
-server = http://localhost/api/v1
+ server = http://localhost:5000/api/v1
 
 submissions
     uri: /grading/submissions

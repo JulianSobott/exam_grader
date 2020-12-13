@@ -1,13 +1,31 @@
 # TODO work here
 
-from flask import Flask, render_template
+from flask import Flask, render_template, render_template_string
+
 from schema_classes import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
 
 app = Flask(__name__)
 
+
+@app.route("/dummy")
+def dummy():
+    var, err = PrepareRequestBase.post("/path/that/does/not/exist")
+    if err:
+        text = err
+    else:
+        if isinstance(var, PreparePOST200Response):
+            text = var.file_errors
+        elif isinstance(var, PreparePOST400Response):
+            text = var.error
+        else:
+            text = var
+    return render_template_string("{{ name }}", name=text)
+
+
 @app.route("/")
 def selctor():
     return render_template("selector.jinja2")
+
 
 # def file_picker():
 #     var, err = PrepareRequestBase.post("/path/that/does/not/exist")
