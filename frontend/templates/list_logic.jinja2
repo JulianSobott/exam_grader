@@ -1,0 +1,23 @@
+{% macro create_list(reports) -%}
+    {{ create_list_header }}
+    {% for file in reports %}
+        {{ create_slide(file) }}
+    {% endfor %}
+{%- endmacro %}
+
+{% macro create_list_header(file) -%}
+    <div class="header-wrapper">
+        <div> {{ exam_name }}</div>
+        <div> {{ num_passed }} / {{ num_tests }} passed the test ({{ percentage }}%)</div>
+    </div>
+{%- endmacro %}
+
+{% macro create_slide(file) -%}
+    <div class="slide-wrapper">
+        <div> {{ file.name }} </div>
+        <div> {{ file.passed }} </div>
+        <div> {{ file.points }} / {{ max_points }}</div>
+        <div> {{ bookmark }} </div>
+        <div> {{ status }} </div>
+    </div>
+{%- endmacro %}

@@ -1,0 +1,48 @@
+<!-- building the report from header and body -->
+{% macro create_report(var) -%}
+    {{create_header(var)}}
+    {{create_body(var)}}
+{%- endmacro %}
+
+<!-- creating report header -->
+{% macro create_header(var) -%}
+    {% set student_name = var.name%}
+    {% set matrikel = var.matrikel%}
+    {% set num_tested = var.tested%}
+    {% set num_correct = var.success%}
+    {% set num_incorrect = var.failed%}
+
+    <div class="header_info">
+        <h1>{{student_name}}, {{matrikel}}</h1>
+        <div>
+            <div> {{ subtasks_cur }} / {{ subtasks_incor }}</div>
+            <div> {{ points }} / {{ max_points }}</div>
+        </div>
+    </div>
+{%- endmacro %}
+
+<!-- creating report body from tasks -->
+{% macro create_body(var) -%}
+    <h4 style="margin-top: 10%">Code Review</h4>
+    {% for task in tasks%}
+        {{create_task(task)}}
+    {% endfor%}
+{%- endmacro %}
+
+<!-- creating the task -->
+    <!-- point/comment input -->
+    <!-- code snippet -->
+    <!-- assertion message -->
+{% macro create_task(task) -%}
+    <h4>{{taskname}}</h4>
+    <div> {{ task_dec }}</div>
+    <label>Points: </label>
+    <input type="number" step="0.5" value="{{ task.auto_points }}" min="0" max="{{ task.max_points }}"> / {{task.max_points}}
+    <label>Comment: </label>
+    <textarea></textarea>
+    {% for snippet in task-code_snippets%}
+        <div> {{snippet.class_name}} - {{snipped.name}}</div>
+        <div> {{snippet.code}} </div>
+        <div> {{snippet.error_info}} </div>
+    {% endfor%}
+{%- endmacro %}
