@@ -1,7 +1,7 @@
 ---
 tasks:
   1:
-    class: MyClass
+    class: MyClass1
     sub-tasks:
       a:
         description: Program something cool
@@ -10,7 +10,7 @@ tasks:
         code-snippets:
           -
             type: METHOD
-            name: toString
+            name: getNumber
           -
             type: CONSTRUCTOR
           -
@@ -24,7 +24,7 @@ tasks:
           -
             type: CLASS
   2:
-    class: MyClass
+    class: MyClass2
     sub-tasks:
       a:
         description: Program something cool
@@ -32,12 +32,12 @@ tasks:
         points: 3
         code-snippets:
           - type: METHOD
-            name: toString
-          - type: CONSTRUCTOR
+            name: getNumbers
           - type: ATTRIBUTES
           - type: CLASS
       b:
         description: Another cool program
         points: 1
         code-snippets:
-          - type: CLASS
+          - type: METHOD
+              name: getN
