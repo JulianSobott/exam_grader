@@ -13,6 +13,7 @@ typedef object SubmissionData
             max_points: float
             auto_points: float
             passed: bool
+            description: str
             ?error_message: str
             ?code_snippets[]: object CodeSnippet
                 name: str
