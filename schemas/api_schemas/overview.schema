@@ -1,0 +1,21 @@
+typedef object ExamPoints
+    exam_name: str
+    points: float
+    max_points: float
+
+overview
+    uri: /overview
+    description: get an overview of all submissions.
+    GET
+        ->
+        <-
+            200
+                exam_name: str
+                num_submissions: int
+                num_passed: int
+                submissions[]: object SubmissionOverview
+                    submission_name: str
+                    reached_min_points: bool
+                    exam_points[]: $ExamPoints  # in our case ZK1 and ZK2
+                    bookmarked: boolean # has at least one item that is bookmarked
+                    status: {NOT_STARTED, ACTIVE, DONE} GradingStatus

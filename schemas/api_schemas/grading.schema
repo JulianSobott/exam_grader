@@ -1,45 +1,46 @@
 typedef object SubmissionData
     name: str
-    passed: bool
+    students_number: str
+    num_correct_subtasks: int
+    num_subtasks: int
+    points: float   # could be calculated by adding all subtask points
     max_points: float
+    ?step_failed: {COMPILE_JAVA, COMPILE_KOTLIN, TEST} StepFailed
     tasks[]: object TaskData
         name: str
-        passed: bool
-        num_tests: int
-        num_passed: int
+        points: float   # could be calculated by adding all subtask points
         max_points: float
+        bookmarked: bool
         sub_tasks[]: object SubTaskData
             name: str
-            max_points: float
-            auto_points: float
-            passed: bool
             description: str
-            ?error_message: str
-            ?code_snippets[]: object CodeSnippet
+            points: float
+            max_points: float
+            bookmarked: bool
+            code_snippets[]: object CodeSnippet
                 name: str
                 class_name: str
-                code: str
-                is_original: bool
-    ?error_message: str
-    ?failed_task: str
+                found: bool
+                ?code: str  # Possible, that the code snippet could not be found in the class
+
 
 typedef object Identifier
     name: str
     type: {SUBMISSION, TASK, SUB_TASK} IdentifierType
     ?parent: $Identifier
 
- server = http://localhost:5000/api/v1
+
+server = http://localhost:5000/api/v1
 
 submissions
     uri: /grading/submissions
     GET
         ->
-            ?submission_names[]: str
-            options: object SubmissionOption
-                include_code_snippets: bool
+            submission_name: str
         <-
             200
-                submissions[]: $SubmissionData
+                submission: $SubmissionData
+            404
 
 points
     uri: /grading/points
@@ -49,6 +50,7 @@ points
             points: float
         <-
             200
+            404 # identifier not found
 
 comment
     uri: /grading/comment
@@ -58,13 +60,14 @@ comment
             comment: str
         <-
             200
+            404 # identifier not found
 
 bookmark
     uri: /grading/bookmark
     POST
         ->
             identifier: $Identifier
+            bookmarked: bool
         <-
             200
-
-
+            404 # identifier not found
