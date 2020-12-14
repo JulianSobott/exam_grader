@@ -71,3 +71,14 @@ bookmark
         <-
             200
             404 # identifier not found
+
+
+status
+    uri: /grading/status
+    POST
+        ->
+            identifier: $Identifier
+            status: {NOT_STARTED, ACTIVE, DONE} GradingStatus
+       <-
+        200
+        404 # Identifier not found

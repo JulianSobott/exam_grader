@@ -6,9 +6,13 @@ import yaml
 
 @dataclass
 class LocalConfig:
+    """Stores the data of the local config file.
+    When a new attribute is added, it must also be added in the `get_local_config()` function
+    """
     submissions_folder: Path
     reference_project: Path  # path to folder with gradle project in it
-    canvas_token: str
+    canvas_token: str = None
+    pymongo_password: str = None
 
 
 cfg = None
@@ -24,5 +28,7 @@ def get_local_config(reload=False) -> LocalConfig:
         cfg = LocalConfig(
             Path(yaml_conf["submissions_folder"]),
             Path(yaml_conf["reference_project"]),
-            yaml_conf["canvas_token"])
+            yaml_conf["canvas_token"],
+            yaml_conf["pymongo_password"]
+        )
     return cfg

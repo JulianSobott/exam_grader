@@ -1,4 +1,5 @@
 ---
+name: OOP_ZK_2
 tasks:
   1:
     class_name: MyClass1

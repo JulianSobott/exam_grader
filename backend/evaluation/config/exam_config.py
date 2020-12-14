@@ -38,6 +38,7 @@ class TaskConfig:
 @dataclass_json
 @dataclass
 class ExamConfig:
+    name: str
     tasks: Dict[str, TaskConfig]
 
 
