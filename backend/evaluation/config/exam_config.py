@@ -25,7 +25,7 @@ class CodeSnippetConfig:
 @dataclass
 class SubTaskConfig:
     description: str
-    points: str
+    points: float
     code_snippets: List[CodeSnippetConfig]
 
 
@@ -43,6 +43,13 @@ class ExamConfig:
 
 
 config = None
+
+
+def get_exam_config_else_raise() -> ExamConfig:
+    conf, err = get_exam_config()
+    if err:
+        raise ValueError(err)
+    return conf
 
 
 def get_exam_config() -> Tuple[Optional[ExamConfig], error]:

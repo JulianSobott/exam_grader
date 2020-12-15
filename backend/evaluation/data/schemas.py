@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
-from schema_classes.grading_schema import StepFailed
+from schema_classes.grading_schema import StepFailed, Testcase
 from schema_classes.overview_schema import GradingStatus
 
 
@@ -45,6 +45,12 @@ class Task:
 
 @dataclass_json
 @dataclass
+class Testcases:
+    testcases: List[Testcase]
+
+
+@dataclass_json
+@dataclass
 class Subtask:
     name: str
     description: str
@@ -52,6 +58,7 @@ class Subtask:
     points: float
     bookmarked: bool
     code_snippets: Optional[List["CodeSnippet"]] = None  # only optional to make loading from db easier
+    testcases: Optional[Testcases] = None
 
 
 @dataclass_json

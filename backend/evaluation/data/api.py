@@ -1,7 +1,7 @@
 from config.exam_config import get_exam_config
 from data.internal import exams, submissions
-from data.schemas import Exam, Submission, Student, Task, Subtask
-from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData
+from data.schemas import Exam, Submission, Student, Task, Subtask, Testcases
+from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData, StepFailed
 from schema_classes.overview_schema import OverviewGET200Response, SubmissionOverview, ExamPoints, GradingStatus
 from utils.p_types import error
 
@@ -113,6 +113,15 @@ def set_bookmark(identifier: Identifier) -> error:
 
 def set_status(identifier: Identifier) -> error:
     pass
+
+
+def update_test_results(submission_name: str, error_message: str, step_failed: StepFailed):
+    submissions().update_one({"exam_name": exam_name, "full_name": submission_name}, {"step_failed": step_failed.value})
+
+
+def set_testcases(submission_name, task_name: str, subtask_name: str, testcases: Testcases):
+    submissions().update_one({"exam_name": exam_name, "full_name": submission_name, "tasks.name": task_name,
+                              "tasks.subtasks.name": subtask_name}, {"$set": {"testcases": testcases.to_dict()}})
 
 
 if __name__ == '__main__':

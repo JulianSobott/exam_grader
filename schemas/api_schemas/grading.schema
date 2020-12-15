@@ -22,6 +22,10 @@ typedef object SubmissionData
                 class_name: str
                 found: bool
                 ?code: str  # Possible, that the code snippet could not be found in the class
+            testcases[]: object Testcase
+                name: str
+                passed: bool
+                ?assertion: str
 
 
 typedef object Identifier
