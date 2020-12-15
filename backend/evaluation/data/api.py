@@ -20,6 +20,9 @@ def preprocess_constant_fields():
     exam_name = config.name
 
 
+preprocess_constant_fields()
+
+
 def create_exam_if_not_exist():
     """Adds the exam if it does not exist, otherwise do nothing"""
     exams().update_one({"name": exam_name}, {"$setOnInsert": Exam(exam_name, []).to_dict()}, upsert=True)
@@ -119,18 +122,20 @@ def update_test_results(submission_name: str, error_message: str, step_failed: S
     submissions().update_one({"exam_name": exam_name, "full_name": submission_name},
                              {
                                  "$set": {
-                                     "step_failed": step_failed.value
-                                 }
+                                     "step_failed": step_failed.value,
+                                     "compile_error_code": error_message
+                                 },
                              })
 
 
 def set_testcases(submission_name, task_name: str, subtask_name: str, testcases: Testcases):
-    submissions().update_one({"exam_name": exam_name, "full_name": submission_name, "tasks.name": task_name,
-                              "tasks.subtasks.name": subtask_name}, {"$set": {"testcases": testcases.to_dict()}})
+    submissions().update_one({"exam_name": exam_name, "full_name": submission_name},
+                             {"$set": {"tasks.$[i].subtasks.$[j].testcases": testcases.to_dict()["testcases"]}},
+                             array_filters=[{"i.name": task_name}, {"j.name": subtask_name}]
+                             )
 
 
 def debug_reset_all_data():
-    preprocess_constant_fields()
     exams().delete_many({})
     create_exam_if_not_exist()
     submissions().delete_many({})

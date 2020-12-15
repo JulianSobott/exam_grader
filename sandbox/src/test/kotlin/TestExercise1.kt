@@ -1,5 +1,5 @@
-import kotlin.test.assertEquals
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class TestExercise1 {
 
@@ -11,11 +11,11 @@ class TestExercise1 {
 
     @Test
     fun `1a) test me fail`() {
-        assert(false)
+        assertTrue(false)
     }
 
     @Test
     fun `1b) another`() {
-        assert(True)
+        assertTrue(true)
     }
 }

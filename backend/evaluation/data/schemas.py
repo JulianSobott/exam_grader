@@ -31,6 +31,7 @@ class Submission:
     bookmarked: bool
     status_grading: GradingStatus
     step_failed: Optional[StepFailed] = None
+    compile_error_code: Optional[str] = None
 
 
 @dataclass_json
