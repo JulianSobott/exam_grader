@@ -19,7 +19,7 @@ class CodeType(Enum):
 @dataclass
 class CodeSnippetConfig:
     code_type: CodeType
-    name: str = None
+    name: Optional[str] = None
 
 
 @dataclass
@@ -73,6 +73,6 @@ def get_required_files() -> Tuple[Optional[List[str]], error]:
     if err:
         return None, err
     files = []
-    for t in conf.tasks:
-        files.append(f"{t}.java")
+    for t in conf.tasks.values():
+        files.append(f"{t.class_name}.java")
     return files, None

@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ logger = get_logger(__name__)
 
 task_step_map = {"compileJava": StepFailed.COMPILE_JAVA, "compileTestKotlin": StepFailed.COMPILE_KOTLIN,
                  "test": StepFailed.TEST}
+test_results_folder = get_local_config().reference_project.joinpath("build/test-results")
 
 
 @dataclass_json
@@ -52,6 +54,7 @@ def run_tests_for_submissions(submissions: Optional[List[str]]) -> TestResults:
 
 
 def run_test_for_submission(submission_name: str):
+    shutil.rmtree(test_results_folder.joinpath(submission_name), ignore_errors=True)
     logger.info(f"[{submission_name}] testing: {submission_name} ...")
     res = run_tests(submission_name)
     ret, failed = failed_task(res, submission_name)
@@ -123,36 +126,38 @@ def failed_task(res: subprocess.CompletedProcess, submission: str) -> Tuple[Opti
 
 
 def save_test_results(results: TestResults):
-    reports_folder = get_local_config().reference_project.joinpath("build/test-results")
+    reports_folder = test_results_folder
     for res in results.submissions:
         submission_path = reports_folder.joinpath(res.submission_name).joinpath("test")
-        testcases = {}
-        for test_file in submission_path.iterdir():
-            if test_file.is_file():
-                testsuite_tree = ET.parse(test_file)
-                testcases_trees = testsuite_tree.findall("testcase")
 
-                for testcase_tree in testcases_trees:
-                    testcase_name = testcase_tree.attrib.get("name")[:-2]  # cut ...() parenthesis
-                    identifier = re.findall(r"([0-9]+)\s*(\w+)\).*", testcase_name)
-                    assert len(identifier) == 1, f"Wrong testcase name: {testcase_name}"
-                    task_name = identifier[0][0]
-                    subtask_name = identifier[0][1]
-                    failure = testcase_tree.find("failure")
-                    if failure:
-                        assertion = failure.attrib.get("message")
-                        testcase = Testcase(testcase_name, False, assertion)
-                    else:
-                        testcase = Testcase(testcase_name, True)
-                    if task_name not in testcases:
-                        testcases[task_name] = []
-                    if subtask_name not in testcases[task_name]:
-                        testcases[task_name][subtask_name] = []
-                    testcases[task_name][subtask_name].append(testcase)
+        if submission_path.exists():
+            testcases = {}
+            for test_file in submission_path.iterdir():
+                if test_file.is_file():
+                    testsuite_tree = ET.parse(test_file)
+                    testcases_trees = testsuite_tree.findall("testcase")
 
-        for task_name, task in testcases:
-            for subtask_name, subtask_testcases in testcases:
-                set_testcases(res.submission_name, task_name, subtask_name, subtask_testcases)
+                    for testcase_tree in testcases_trees:
+                        testcase_name = testcase_tree.attrib.get("name")[:-2]  # cut ...() parenthesis
+                        identifier = re.findall(r"([0-9]+)\s*(\w+)\).*", testcase_name)
+                        assert len(identifier) == 1, f"Wrong testcase name: {testcase_name}"
+                        task_name = identifier[0][0]
+                        subtask_name = identifier[0][1]
+                        failure = testcase_tree.find("failure")
+                        if failure:
+                            assertion = failure.attrib.get("message")
+                            testcase = Testcase(testcase_name, False, assertion)
+                        else:
+                            testcase = Testcase(testcase_name, True)
+                        if task_name not in testcases:
+                            testcases[task_name] = {}
+                        if subtask_name not in testcases[task_name]:
+                            testcases[task_name][subtask_name] = []
+                        testcases[task_name][subtask_name].append(testcase)
+
+            for task_name, task in testcases:
+                for subtask_name, subtask_testcases in testcases:
+                    set_testcases(res.submission_name, task_name, subtask_name, subtask_testcases)
 
         update_test_results(res.submission_name, res.error_message, res.failed_task)
 

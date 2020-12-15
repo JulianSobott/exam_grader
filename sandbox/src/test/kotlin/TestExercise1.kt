@@ -13,4 +13,9 @@ class TestExercise1 {
     fun `1a) test me fail`() {
         assert(false)
     }
+
+    @Test
+    fun `1b) another`() {
+        assert(True)
+    }
 }

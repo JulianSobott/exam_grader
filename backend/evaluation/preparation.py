@@ -12,6 +12,7 @@ from config.exam_config import get_required_files, get_exam_config_else_raise, E
 from data.api import insert_submission
 from data.schemas import Submission, Student, Subtask, Task, CodeSnippet
 from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus
+from gittools import git_copied_files, git_renamed_files
 from schema_classes.overview_schema import GradingStatus
 from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
 from utils.p_types import error, new_error
@@ -50,7 +51,17 @@ def copy_raw_to_structured(raw_folder: Path, structured_folder: Path) -> error:
 
 
 def task_copy_raw_to_structured() -> error:
-    return copy_raw_to_structured(raw_submissions, structured_submissions)
+    err = copy_raw_to_structured(raw_submissions, structured_submissions)
+    if not err:
+        git_copied_files()
+    return err
+
+
+def task_renamed_files():
+    save_submissions()
+    err = fill_missing_files()
+    if not err:
+        git_renamed_files()
 
 
 def _copy_file_utf8(src: Path, dst: Path, ):
@@ -128,7 +139,7 @@ def rename_files(renames: List[RenameFile]) -> error:
 
 def save_submissions():
     """Saves all the data for a submission that is available after they are sorted into folders and before testing."""
-    folder_regex = re.compile(r"(?P<students_name>\w+)(?P<canvas_id>[0-9]{4})")
+    folder_regex = re.compile(r"(?P<students_name>\w+_\w+)-(?P<canvas_id>[0-9]{4})")
     exam = get_exam_config_else_raise()
     exam_name = exam.name
 
@@ -145,7 +156,8 @@ def save_submissions():
                            default_status_grading))
             logger.debug(f"Submission saved: {sub.name}")
         else:
-            logger.warning(f"Invalid file in {structured_submissions}: {sub.name}")
+            if sub.name not in [".git"]:
+                logger.warning(f"Invalid file in {structured_submissions}: {sub.name}")
 
 
 def get_tasks_with_code(submission_name: str, exam: ExamConfig) -> List[Task]:
@@ -197,3 +209,7 @@ def code_snippets_for_subtask(submission_name: str, class_name: str, code_snippe
         code_snippet = CodeSnippet(conf["name"], class_name, code_status == CodeStatus.ORIGINAL, code)
         code_snippets.append(code_snippet)
     return code_snippets
+
+
+if __name__ == '__main__':
+    task_renamed_files()

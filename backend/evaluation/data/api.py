@@ -116,7 +116,12 @@ def set_status(identifier: Identifier) -> error:
 
 
 def update_test_results(submission_name: str, error_message: str, step_failed: StepFailed):
-    submissions().update_one({"exam_name": exam_name, "full_name": submission_name}, {"step_failed": step_failed.value})
+    submissions().update_one({"exam_name": exam_name, "full_name": submission_name},
+                             {
+                                 "$set": {
+                                     "step_failed": step_failed.value
+                                 }
+                             })
 
 
 def set_testcases(submission_name, task_name: str, subtask_name: str, testcases: Testcases):
@@ -124,11 +129,16 @@ def set_testcases(submission_name, task_name: str, subtask_name: str, testcases:
                               "tasks.subtasks.name": subtask_name}, {"$set": {"testcases": testcases.to_dict()}})
 
 
+def debug_reset_all_data():
+    preprocess_constant_fields()
+    exams().delete_many({})
+    create_exam_if_not_exist()
+    submissions().delete_many({})
+
+
 if __name__ == '__main__':
     # Testing
-    create_exam_if_not_exist()
-    preprocess_constant_fields()
-    submissions().delete_many({})
+    debug_reset_all_data()
 
     exam_1 = "Exam1"
 
