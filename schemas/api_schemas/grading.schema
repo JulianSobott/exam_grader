@@ -79,6 +79,6 @@ status
         ->
             identifier: $Identifier
             status: {NOT_STARTED, ACTIVE, DONE} GradingStatus
-       <-
-        200
-        404 # Identifier not found
+        <-
+            200
+            404 # Identifier not found
