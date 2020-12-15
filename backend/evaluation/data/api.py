@@ -1,7 +1,7 @@
 from config.exam_config import get_exam_config
 from data.internal import exams, submissions
 from data.schemas import Exam, Submission, Student, Task, Subtask
-from schema_classes.grading_schema import SubmissionData, Identifier
+from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData
 from schema_classes.overview_schema import OverviewGET200Response, SubmissionOverview, ExamPoints, GradingStatus
 from utils.p_types import error
 
@@ -71,8 +71,32 @@ def overview_data() -> OverviewData:
     return OverviewGET200Response(exam_name, len(overview_submissions), num_passed, overview_submissions)
 
 
-def submission_data() -> SubmissionData:
-    pass
+def submission_data(submission_name: str) -> SubmissionData:
+    """db Submission to frontend submission"""
+    res = submissions().find_one({"full_name": submission_name, "exam_name": exam_name})
+    sub: Submission = Submission.from_dict(res)
+    num_correct = 0
+    num_subtasks = 0
+    points_sub = 0
+    max_points_sub = 0
+    tasks = []
+    for t in sub.tasks:
+        task_points = 0
+        task_max_points = 0
+        subtasks = []
+        for st in t.subtasks:
+            num_correct += st.points == st.max_points
+            num_subtasks += 1
+            points_sub += st.points
+            max_points_sub += st.max_points
+            task_points += st.points
+            task_max_points += st.max_points
+            subtasks.append(
+                SubTaskData(st.name, st.description, st.points, st.max_points, st.bookmarked, st.code_snippets))
+        tasks.append(
+            TaskData(t.name, task_points, task_max_points, t.bookmarked, subtasks))
+    return SubmissionData(sub.student.name, sub.student.student_number, num_correct, num_subtasks,
+                          points_sub, max_points_sub, tasks, sub.step_failed)
 
 
 def set_points(identifier: Identifier) -> error:
@@ -121,3 +145,5 @@ if __name__ == '__main__':
                        Task("myTAsk2", 20, [Subtask("sub2", "a descri2ption", 5, 1, False, [])], False)
                    ], False, GradingStatus.ACTIVE.value).to_dict(),
     ])
+    r = submission_data("P1")
+    print(r)
