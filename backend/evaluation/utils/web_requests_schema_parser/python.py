@@ -6,11 +6,12 @@ import autopep8
 
 from utils.web_requests_schema_parser.intermediate_representation import *
 from utils.web_requests_schema_parser.parser import parse
-from utils.web_requests_schema_parser.templates import Template
+from utils.web_requests_schema_parser.templates import template, _Template, to_str
 
 
+@template
 @dataclass
-class PyHandleMethod(Template):
+class PyHandleMethod:
     name: str
     data_type: str
     return_type: str
@@ -27,8 +28,9 @@ def handle_$name(self, data: "$data_type"$url_params) -> "$return_type":
         return ""
 
 
+@template
 @dataclass
-class PyRequestMethod(Template):
+class PyRequestMethod:
     http_method: str
     data_type: str
     attributes: List["PyAttribute"]
@@ -63,8 +65,9 @@ def $http_method(cls, $attributes) -> Tuple["$response_type", str]:
         return "{" + ", ".join([f"\"{param}\": {param}" for param in self.url_params]) + "}"
 
 
+@template
 @dataclass
-class PyRequestClass(Template):
+class PyRequestClass:
     name: str
     handle_methods: List[PyHandleMethod]
     request_methods: List[PyRequestMethod]
@@ -118,8 +121,9 @@ def url_params_from_uri(uri: str) -> List[str]:
     return re.findall("<([^>]+)>", uri)
 
 
+@template
 @dataclass
-class PyAttribute(Template):
+class PyAttribute:
     name: str
     type: str
     init_code: str = None
@@ -129,15 +133,17 @@ class PyAttribute(Template):
         return f"= {self.init_code}" if self.init_code else ""
 
 
+@template
 @dataclass
-class PyVariable(Template):
+class PyVariable:
     name: str
     value: str
     _template = "$name = $value"
 
 
+@template
 @dataclass
-class PyDataClass(Template):
+class PyDataClass:
     name: str
     attributes: List[PyAttribute]
     _template = """
@@ -151,7 +157,8 @@ class $name:
         if not self.attributes:
             return "pass"
         else:
-            return self.sub(get_ordered_attributes(self.attributes))
+            ordered = get_ordered_attributes(self.attributes)
+            return to_str(ordered)
 
 
 def get_ordered_attributes(attributes: List[PyAttribute]):
@@ -160,8 +167,9 @@ def get_ordered_attributes(attributes: List[PyAttribute]):
     return required + optional
 
 
+@template
 @dataclass
-class PyEnum(Template):
+class PyEnum:
     name: str
     values: List[str]
     _template = """
@@ -173,8 +181,9 @@ class $name(Enum):
         return "\n".join([f"{v} = \"{v}\"" for v in self.values])
 
 
+@template
 @dataclass
-class PyFile(Template):
+class PyFile:
     objects: "Tree"
     _template = """
 # Auto generated code by script
@@ -213,9 +222,10 @@ type_mapping = {
 }
 
 
+@template
 @dataclass
-class Tree(Template):
-    element: Template = None
+class Tree:
+    element: _Template
     children: List["Tree"] = field(default_factory=list)
     _template = """
 $children
@@ -230,7 +240,7 @@ $element
 
 def schema_to_python(text: str) -> str:
     file = parse(text)
-    root = Tree()
+    root = Tree(None)
     for global_type in file.global_types:
         child = type_definition_to_python(global_type)
         root.children.append(child)
@@ -313,7 +323,7 @@ def body_to_python(body: Body) -> Tuple[List[PyAttribute], List[Tree]]:
             assert isinstance(child.element, PyDataClass) or isinstance(child.element, PyEnum)
             py_type = child.element.name
         elif t == ReferenceType:
-            py_type = attr.type_definition.data.name  # TODO
+            py_type = attr.type_definition.data.name
         else:
             assert t in type_mapping, f"{t} not in type_mapping"
             py_type = type_mapping[t]
