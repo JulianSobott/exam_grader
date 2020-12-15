@@ -80,3 +80,4 @@ gradle-app.setting
 local.config.yaml
 **schema_classes/
 /sandbox/submissions/results/*
+/sandbox/submissions/structured/*

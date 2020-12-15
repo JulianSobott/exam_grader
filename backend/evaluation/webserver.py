@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from flask_cors import CORS
 
 import api
@@ -20,9 +20,10 @@ routes(
                 post("/rename_and_fill", api.tools.RenameAndFillRequest),
                 get("/test_files", api.tools.TestFilesRequest),
             ),
+            get("/overview", api.overview.OverviewRequest),
             group(
                 "/grading",
-                get("/<submission_name>", api.todo),
+                post("/submissions", api.grading.SubmissionsRequest),
                 group(
                     "/<submission_name>",
                     post("/points", api.todo),

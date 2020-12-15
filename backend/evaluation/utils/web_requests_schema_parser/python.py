@@ -76,8 +76,10 @@ class $name(ABC):
             valid_json = True
         except:
             pass
-        response = instance.__getattribute__(f"handle_{method}")(data)
-        return Response(response.to_json(), status=response.status_code)
+        response_data = instance.__getattribute__(f"handle_{method}")(data)
+        response = make_response(response_data.to_json(), response_data.status_code)
+        response.mimetype = "application/json"
+        return response
     
     @classmethod
     def _request(cls, method, data):
@@ -156,7 +158,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union, Optional, Tuple
 from abc import ABC, abstractmethod
-from flask import Response
+from flask import make_response
 import requests
 
 

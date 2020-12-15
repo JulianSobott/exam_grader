@@ -59,7 +59,7 @@ class Subtask:
     points: float
     bookmarked: bool
     code_snippets: Optional[List["CodeSnippet"]] = None  # only optional to make loading from db easier
-    testcases: Optional[Testcases] = None
+    testcases: Optional[List[Testcase]] = None
 
 
 @dataclass_json
