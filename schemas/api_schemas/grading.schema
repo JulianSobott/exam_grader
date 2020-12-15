@@ -37,10 +37,9 @@ typedef object Identifier
 server = http://localhost:5000/api/v1
 
 submissions
-    uri: /grading/submissions
-    POST
+    uri: /grading/submissions/<submission_name>
+    GET
         ->
-            submission_name: str
         <-
             200
                 submission: $SubmissionData

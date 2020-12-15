@@ -1,5 +1,6 @@
+import re
 from dataclasses import field
-from typing import Tuple
+from typing import Tuple, Optional
 
 import autopep8
 
@@ -13,11 +14,17 @@ class PyHandleMethod(Template):
     name: str
     data_type: str
     return_type: str
+    url_params: Optional[List[str]] = None
     _template = """
 @abstractmethod
-def handle_$name(self, data: "$data_type") -> "$return_type":
+def handle_$name(self, data: "$data_type"$url_params) -> "$return_type":
     ...
 """
+
+    def url_params_to_str(self):
+        if self.url_params:
+            return ", " + ", ".join(p + ": str" for p in self.url_params)
+        return ""
 
 
 @dataclass
@@ -27,11 +34,12 @@ class PyRequestMethod(Template):
     attributes: List["PyAttribute"]
     response_type: str
     code_class_map: dict
+    url_params: Optional[List[str]] = None
     _template = """
 @classmethod
 def $http_method(cls, $attributes) -> Tuple["$response_type", str]:
     data = $data_type($attribute_names)
-    res = cls._request("$http_method", data)
+    res = cls._request("$http_method", data, $url_params_dict)
     code_class_map = $code_class_map
     if res.status_code not in code_class_map:
         return res, "Unknown status returned"
@@ -43,10 +51,16 @@ def $http_method(cls, $attributes) -> Tuple["$response_type", str]:
         return "{" + ", ".join(f"{code}: {class_}" for code, class_ in self.code_class_map.items()) + "}"
 
     def attributes_to_str(self):
-        return ", ".join([a.to_str() for a in get_ordered_attributes(self.attributes)])
+        attributes = ", ".join(a.to_str() for a in get_ordered_attributes(self.attributes))
+        url_params = ", ".join(p + ": str" for p in self.url_params)
+        both = [b for b in [attributes, url_params] if b]
+        return ", ".join(both)
 
     def attribute_names_to_str(self):
         return ", ".join([a.name for a in get_ordered_attributes(self.attributes)])
+
+    def url_params_dict_to_str(self):
+        return "{" + ", ".join([f"\"{param}\": {param}" for param in self.url_params]) + "}"
 
 
 @dataclass
@@ -55,6 +69,7 @@ class PyRequestClass(Template):
     handle_methods: List[PyHandleMethod]
     request_methods: List[PyRequestMethod]
     uri: str
+    url_parameters: Optional[List[str]] = None
     _template = """
 class $name(ABC):
     _json_mapper = $json_mapper
@@ -64,7 +79,7 @@ class $name(ABC):
         self.request = request
     
     @classmethod
-    def _handle_request(cls, request):
+    def _handle_request(cls, request, url_params: Dict[str, str]):
         method = request.method.lower()
         instance = cls(request)
         data_class = instance._json_mapper[method]
@@ -76,21 +91,31 @@ class $name(ABC):
             valid_json = True
         except:
             pass
-        response_data = instance.__getattribute__(f"handle_{method}")(data)
+        response_data = instance.__getattribute__(f"handle_{method}")(data, **url_params)
         response = make_response(response_data.to_json(), response_data.status_code)
         response.mimetype = "application/json"
         return response
     
     @classmethod
-    def _request(cls, method, data):
-        return requests.request(method, cls._url, data=data.to_json())
+    def _request(cls, method, data, url_params: Dict[str, str]):
+        url = cls._url
+        for key, value in url_params.items():
+            url = url.replace(f"<{key}>", value)
+        return requests.request(method, url, data=data.to_json())
         
     $handle_methods
     $request_methods
 """
 
+    def __post_init__(self):
+        self.url_parameters = url_params_from_uri(self.uri)
+
     def json_mapper_to_str(self):
         return "{" + ", ".join([f"\"{m.name}\": {m.data_type}" for m in self.handle_methods]) + "}"
+
+
+def url_params_from_uri(uri: str) -> List[str]:
+    return re.findall("<([^>]+)>", uri)
 
 
 @dataclass
@@ -156,7 +181,7 @@ class PyFile(Template):
 from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Dict
 from abc import ABC, abstractmethod
 from flask import make_response
 import requests
@@ -220,6 +245,8 @@ def schema_to_python(text: str) -> str:
 def communication_to_python(communication: Communication) -> List[Tree]:
     name = to_camel_case(communication.name)
     endpoint_name = f"{name}RequestBase"
+    uri = get_simple_attribute(communication.attributes, "uri", communication.name)
+    uri_params = url_params_from_uri(uri)
     trees = []
     handle_methods = []
     request_methods = []
@@ -244,12 +271,12 @@ def communication_to_python(communication: Communication) -> List[Tree]:
         response_type_name = f"{gen_class_name}Response"
         response_type_value = f"Union[" + ", ".join(resp_class_names) + "]"
         trees.append(Tree(PyVariable(response_type_name, response_type_value)))
-        method = PyHandleMethod(req.method.lower(), req_class_name, response_type_name)
+        method = PyHandleMethod(req.method.lower(), req_class_name, response_type_name, uri_params)
         handle_methods.append(method)
         request_method = PyRequestMethod(req.method.lower(), req_class_name, req_attributes, response_type_name,
-                                         resp_code_class_map)
+                                         resp_code_class_map, uri_params)
         request_methods.append(request_method)
-    uri = get_simple_attribute(communication.attributes, "uri", communication.name)
+
     request_class = PyRequestClass(endpoint_name, handle_methods, request_methods, uri)
     trees.append(Tree(request_class))
     return trees

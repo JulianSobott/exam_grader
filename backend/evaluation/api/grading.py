@@ -1,9 +1,9 @@
 from data.api import submission_data
-from schema_classes.grading_schema import SubmissionsRequestBase, SubmissionsPOSTRequest, SubmissionsPOSTResponse, \
-    SubmissionsPOST200Response
+from schema_classes.grading_schema import SubmissionsRequestBase, SubmissionsGETRequest, SubmissionsGETResponse, \
+    SubmissionsGET200Response
 
 
 class SubmissionsRequest(SubmissionsRequestBase):
 
-    def handle_post(self, data: "SubmissionsPOSTRequest") -> "SubmissionsPOSTResponse":
-        return SubmissionsPOST200Response(submission_data(data.submission_name))
+    def handle_get(self, data: "SubmissionsGETRequest", submission_name: str) -> "SubmissionsGETResponse":
+        return SubmissionsGET200Response(submission_data(submission_name))
