@@ -106,6 +106,12 @@ def run():
                 description="Removes all data from the db, deletes all structured submissions! ONLY BEFORE GRADING!",
                 help="=description",
                 action=task(lambda args: debug_reset_all())
+            ),
+            Command(
+                name="dummy",
+                description="Reset data, copy, fill, test. Use for testing only!",
+                help="=descriptiion",
+                action=task(lambda args: dummy_setup())
             )
         ],
     ).parse()
@@ -118,6 +124,14 @@ def run():
         logger.setLevel(logging.ERROR)
 
     parsed.func(parsed)
+
+
+def dummy_setup():
+    debug_reset_all()
+    task_copy_raw_to_structured()
+    task_renamed_files()
+    run_tests_for_all()
+    start_webserver()
 
 
 def handle_run_tests_task(args):

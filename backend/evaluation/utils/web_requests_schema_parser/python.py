@@ -89,6 +89,8 @@ class $name(ABC):
         json_data = request.data
         data = None
         try:
+            if not json_data:
+                json_data = "{}"    # requests with no body
             data = data_class.from_json(json_data)
         except BaseException as e:
             return make_response(f"Malformed body: {e}", 400)
