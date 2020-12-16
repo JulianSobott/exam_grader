@@ -24,12 +24,10 @@ routes(
             group(
                 "/grading",
                 get("/submissions/<submission_name>", api.grading.SubmissionsRequest),
-                group(
-                    "/<submission_name>",
-                    post("/points", api.todo),
-                    post("/comment", api.todo),
-                    post("/bookmark", api.todo)
-                )
+                post("/points", api.grading.PointsRequest),
+                post("/comment", api.grading.CommentRequest),
+                post("/bookmark", api.grading.BookmarkRequest),
+                post("/status", api.grading.StatusRequest)
             ),
             group(
                 "/statistics",
