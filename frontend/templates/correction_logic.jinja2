@@ -1,48 +1,92 @@
+{# for a list of the parameters used in the sections refer to /docs #}
+
 <!-- building the report from header and body -->
-{% macro create_report(var) -%}
-    {{create_header(var)}}
-    {{create_body(var)}}
+{% macro create_report(report) -%}
+    {{create_header(report)}}
+    {{create_body(report)}}
 {%- endmacro %}
 
 <!-- creating report header -->
-{% macro create_header(var) -%}
-    {% set student_name = var.name%}
-    {% set matrikel = var.matrikel%}
-    {% set num_tested = var.tested%}
-    {% set num_correct = var.success%}
-    {% set num_incorrect = var.failed%}
-
+    {#  general information about the students submission #}
+{% macro create_header(report) -%}
     <div class="header_info">
-        <h1>{{student_name}}, {{matrikel}}</h1>
-        <div>
-            <div> {{ subtasks_cur }} / {{ subtasks_incor }}</div>
-            <div> {{ points }} / {{ max_points }}</div>
+        <h1>{{ report.name }}, {{ report.students_number }}</h1>
+        {#  FIXME class does not work #}
+        <div class="sub_content">
+            <dl class="row">
+                <dt class="col-sm-3">Subtasks: </dt>
+                <dd class="col-sm-9">{{ report.num_correct_subtasks }} / {{ report.num_subtasks }}</dd>
+
+                <dt class="col-sm-3">Points: </dt>
+                <dd class="col-sm-9">{{ report.points }} / {{ report.max_points }}</dd>
+
+                {% if report.step_failed %}
+                    <dt class="col-sm-3">Step failed: </dt>
+                    <dd class="col-sm-9">{{ report.step_failed }}</dd>
+                {% endif %}
+            </dl>
         </div>
     </div>
 {%- endmacro %}
 
 <!-- creating report body from tasks -->
-{% macro create_body(var) -%}
-    <h4 style="margin-top: 10%">Code Review</h4>
-    {% for task in tasks%}
-        {{create_task(task)}}
-    {% endfor%}
+    {#  containes tasks & subtask with snippets, points, comments etc. #}
+{% macro create_body(report) -%}
+{#    <h2 style="margin-top: 5%">Code Review</h2>#}
+    {% for task in report.tasks%}
+        {{ create_task(task) }}
+    {% endfor %}
 {%- endmacro %}
 
-<!-- creating the task -->
-    <!-- point/comment input -->
-    <!-- code snippet -->
-    <!-- assertion message -->
+<!-- create a task (and subtask) -->
 {% macro create_task(task) -%}
-    <h4>{{taskname}}</h4>
-    <div> {{ task_dec }}</div>
-    <label>Points: </label>
-    <input type="number" step="0.5" value="{{ task.auto_points }}" min="0" max="{{ task.max_points }}"> / {{task.max_points}}
-    <label>Comment: </label>
-    <textarea></textarea>
-    {% for snippet in task-code_snippets%}
-        <div> {{snippet.class_name}} - {{snipped.name}}</div>
-        <div> {{snippet.code}} </div>
-        <div> {{snippet.error_info}} </div>
-    {% endfor%}
+    <h2 style="margin-top: 5%"> {{ task.name }}</h2>
+    {#  FIXME class does not work #}
+     <div class="sub_content">
+            <dl class="row">
+                <dt class="col-sm-3">Points: </dt>
+                <dd class="col-sm-9">{{ task.points }} / {{ task.max_points }}</dd>
+
+                {% if task.bookmarked %}
+                    {# TODO add support for icon #}
+                    <dt class="col-sm-3"> <mark>Bookmark!</mark></dt>
+                {% endif %}
+            </dl>
+        </div>
+    <div>
+    {% for subtask in task.sub_tasks %}
+        {{ create_subtask(subtask) }}
+    {% endfor %}
+{%- endmacro %}
+
+<!-- creating the subtask -->
+{% macro create_subtask(subtask) -%}
+    <h3 style="margin-top: 5%">{{subtask.name}}</h3>
+    <div class="sub_content">
+        <div> {{ subtask.description }}</div>
+        <label>Points: </label>
+        <input type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}"> / {{ subtask.max_points}}
+        <label>Comment: </label>
+        <input type="text">
+        {% if subtask.bookmarked %}
+            {# TODO add support for icon #}
+            <div> <mark>Bookmark!</mark> </div>
+        {% endif %}
+        {% for snippet in subtask.code_snippets%}
+            <div> {{snippet.class_name}} - {{snippet.name}}</div>
+            {%  if snippet.found %}
+                <div>
+                    <pre><code>
+                        {{snippet.code}}
+                    </code></pre>
+                </div>
+            {%  endif %}
+            {# assertion errors #}
+            {% for case in subtask.testcases %}
+                <div> {{ case.name }}</div>
+                <div> {{ case.passed }}</div>
+                <div> {{ case.assertion }} </div>
+            {%  endfor %}
+        {% endfor %}
+    </div>
 {%- endmacro %}
