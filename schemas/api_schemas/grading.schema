@@ -95,3 +95,14 @@ status
             200
             400
                 error: $SetError
+
+submit_to_canvas
+    uri: /grading/submit_to_canvas
+    POST
+        ->
+        <-
+            200
+            400
+                err_msg: str
+            500
+                err_msg: str

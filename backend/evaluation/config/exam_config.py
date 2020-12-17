@@ -40,6 +40,7 @@ class TaskConfig:
 class ExamConfig:
     name: str
     tasks: Dict[str, TaskConfig]
+    canvas_quiz_url: str
 
 
 config = None

@@ -1,4 +1,4 @@
-from data.api import submission_data, set_points, set_comment, set_bookmark, set_status
+from data.api import submission_data, set_points, set_comment, set_bookmark, set_status, get_grading_data
 from schema_classes.grading_schema import *
 
 
@@ -44,3 +44,9 @@ class StatusRequest(StatusRequestBase):
         if err:
             return StatusPOST400Response(SetError(f"Identifier: {data.identifier}", err))
         return StatusPOST200Response()
+
+
+class SubmitToCanvasRequest(SubmitToCanvasRequestBase):
+    def handle_post(self, data: "SubmitToCanvasPOSTRequest") -> "SubmitToCanvasPOSTResponse":
+        grading_data = get_grading_data()
+        # TODO: Submit to canvas

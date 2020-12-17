@@ -1,5 +1,6 @@
 ---
 name: OOP_ZK_2
+canvas_quiz_url: https://aalen.instructure.com/api/v1/courses/2395/quizzes/7491
 tasks:
   1:
     class_name: MyClass1
