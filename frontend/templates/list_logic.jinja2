@@ -7,17 +7,19 @@
 
 {% macro create_list_header(file) -%}
     <div class="header-wrapper">
-        <div> {{ exam_name }}</div>
-        <div> {{ num_passed }} / {{ num_tests }} passed the test ({{ percentage }}%)</div>
+        <div> {{ file.exam_name }}</div>
+        <div> {{ file.num_passed }} / {{ file.num_tests }} passed the test</div>
     </div>
 {%- endmacro %}
 
 {% macro create_slide(file) -%}
     <div class="slide-wrapper">
-        <div> {{ file.name }} </div>
-        <div> {{ file.passed }} </div>
-        <div> {{ file.points }} / {{ max_points }}</div>
-        <div> {{ bookmark }} </div>
-        <div> {{ status }} </div>
+        <div><button style="height: 100px; width: 1500px;" ><div class="row">
+            <div class="col-sm">{{ file.name }}</div>
+            <div class="col-sm">{{ file.passed }}</div>
+            <div class="col-sm">{{ file.points }} / {{ file.max_points }}</div>
+            <div class="col-sm">{{ file.bookmark }}</div>
+            <div class="col-sm">{{ file.status }}</div>
+        </div></button></div>
     </div>
 {%- endmacro %}

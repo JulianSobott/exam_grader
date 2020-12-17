@@ -2,24 +2,24 @@
 
 from flask import Flask, render_template, render_template_string
 
-from schema_classes import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
+# from schema_classes import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
 
 app = Flask(__name__)
 
 
-@app.route("/dummy")
-def dummy():
-    var, err = PrepareRequestBase.post("/path/that/does/not/exist")
-    if err:
-        text = err
-    else:
-        if isinstance(var, PreparePOST200Response):
-            text = var.file_errors
-        elif isinstance(var, PreparePOST400Response):
-            text = var.error
-        else:
-            text = var
-    return render_template_string("{{ name }}", name=text)
+# @app.route("/dummy")
+# def dummy():
+#     var, err = PrepareRequestBase.post("/path/that/does/not/exist")
+#     if err:
+#         text = err
+#     else:
+#         if isinstance(var, PreparePOST200Response):
+#             text = var.file_errors
+#         elif isinstance(var, PreparePOST400Response):
+#             text = var.error
+#         else:
+#             text = var
+#     return render_template_string("{{ name }}", name=text)
 
 
 @app.route("/")
@@ -54,8 +54,25 @@ def correction():
 
 
 @app.route("/list")
-def list():
-    return render_template("list.jinja2")
+def exam_list():
+    var2 = {
+        "name": "Vincent",
+        "passed": True,
+        "points": 45,
+        "max_points": 50,
+        "bookmark": True,
+        "status": "angefangen"
+    }
+    var3 = {
+        "name": "Julian",
+        "passed": True,
+        "points": 50,
+        "max_points": 50,
+        "bookmark": False,
+        "status": "unbearbeitet"
+    }
+    dummy = [var2, var3]
+    return render_template("list.jinja2", reports=dummy)
 
 
 if __name__ == '__main__':
