@@ -32,50 +32,96 @@
 <!-- creating report body from tasks -->
     {#  containes tasks & subtask with snippets, points, comments etc. #}
 {% macro create_body(report) -%}
-{#    <h2 style="margin-top: 5%">Code Review</h2>#}
-    {% for task in report.tasks%}
-        {{ create_task(task) }}
-    {% endfor %}
+    <div class="accordion">
+        {% for task in report.tasks%}
+            {# create a unique id for every task #}
+            {% set id = task.name|lower()|replace(" ","") %}
+            <div class="accordion-item">
+                {{ create_task(task, id) }}
+            </div>
+        {% endfor %}
+    </div>
 {%- endmacro %}
 
 <!-- create a task (and subtask) -->
-{% macro create_task(task) -%}
-    <h2 style="margin-top: 5%"> {{ task.name }}</h2>
+{% macro create_task(task, id) -%}
+    <div class="row" style="margin-top: 5%">
+        <div class="col-sm">
+             <h2> {{ task.name }}</h2>
+        </div>
+        <div class="col-sm-2">
+            <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
+                 </svg>
+                {# enroll #}
+            </button>
+        </div>
+        <div class="col-sm mt-2">
+            {% if task.bookmarked %}
+                {# <mark>Bookmark!</mark> #}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+                </svg>
+            {% endif %}
+        </div>
+    </div>
+
     {#  FIXME class does not work #}
-     <div class="sub_content">
+     <div class="sub_content accordion-collapse collapse" id="{{ id }}">
             <dl class="row">
                 <dt class="col-sm-3">Points: </dt>
                 <dd class="col-sm-9">{{ task.points }} / {{ task.max_points }}</dd>
-
-                {% if task.bookmarked %}
-                    {# TODO add support for icon #}
-                    <dt class="col-sm-3"> <mark>Bookmark!</mark></dt>
-                {% endif %}
             </dl>
+         {% for subtask in task.sub_tasks %}
+             {# create a unique id for every subtask #}
+             {% set id = subtask.name|lower()|replace(" ","") %}
+             {{ create_subtask(subtask, id) }}
+        {% endfor %}
         </div>
     <div>
-    {% for subtask in task.sub_tasks %}
-        {{ create_subtask(subtask) }}
-    {% endfor %}
 {%- endmacro %}
 
 <!-- creating the subtask -->
-{% macro create_subtask(subtask) -%}
-    <h3 style="margin-top: 5%">{{subtask.name}}</h3>
-    <div class="sub_content">
-        <div> {{ subtask.description }}</div>
-        <label>Points: </label>
-        <input type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}"> / {{ subtask.max_points}}
-        <label>Comment: </label>
-        <input type="text">
-        {% if subtask.bookmarked %}
-            {# TODO add support for icon #}
-            <div> <mark>Bookmark!</mark> </div>
-        {% endif %}
+{% macro create_subtask(subtask, id) -%}
+        <div class="row" style="margin-top: 5%">
+            <div class="col-sm">
+                 <h3>{{subtask.name}}</h3>
+            </div>
+            <div class="col-sm-2">
+                <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
+                    </svg>
+                    {# enroll #}
+                </button>
+            </div>
+            <div class="col-sm mt-2">
+                {% if subtask.bookmarked %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+                    </svg>
+                    {# <mark>Bookmark!</mark> #}
+                {% endif %}
+            </div>
+        </div>
+
+    {# FIXME class does not work #}
+    <div class="sub_content accordion-collapse collapse" id="{{ id }}">
+        <div class="mb-3"> {{ subtask.description }}</div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Points</span>
+            <input class="form-control" type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}">
+            <span class="input-group-text"> / {{ subtask.max_points}}</span>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Comment</span>
+            <textarea class="form-control"></textarea>
+        </div>
         {% for snippet in subtask.code_snippets%}
-            <div> {{snippet.class_name}} - {{snippet.name}}</div>
+            <div class="mb-3"> {{snippet.class_name}} - {{snippet.name}}</div>
             {%  if snippet.found %}
-                <div>
+                <div class="rounded border mb-3">
                     <pre><code>
                         {{snippet.code}}
                     </code></pre>
