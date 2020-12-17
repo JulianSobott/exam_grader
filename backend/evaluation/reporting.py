@@ -1,16 +1,13 @@
 import xml.etree.ElementTree as ET
-from pathlib import Path
 from typing import Tuple, Optional
 
 from schema_classes.web_data_schema import CodeSnippet
+from test_code_mapping import *
 
 from common import logger, submission_folder, error
 from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code
 from schema_classes import Submission
-from test_code_mapping import *
 from testing import load_test_results
-
-reports_folder = Path(__file__).parent.parent.parent.joinpath("build/test-results")
 
 
 def create_report(searched_submission_names: list = None) -> Tuple[Optional[dict], error]:

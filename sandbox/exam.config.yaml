@@ -31,9 +31,3 @@ tasks:
             name: getNumbers
           - code_type: ATTRIBUTES
           - code_type: CLASS_HEADER
-      b:
-        description: Another cool program
-        points: 1
-        code_snippets:
-          - code_type: METHOD
-            name: getN

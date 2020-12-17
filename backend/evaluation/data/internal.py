@@ -9,12 +9,12 @@ database = None
 
 def connect() -> Database:
     global client, database
-    password = get_local_config().pymongo_password
-    default_db = "oop_zk_2"
-    client = MongoClient(
-        f"mongodb+srv://JulianSobott:{password}@cluster0.upkff.mongodb.net/{default_db}?retryWrites=true&w"
-        f"=majority")
-    database = client.get_database(default_db)
+    mongo_config = get_local_config().mongodb
+    if mongo_config.run_local:
+        client = MongoClient('mongodb://localhost:27017/exam_grader')
+    else:
+        client = MongoClient(mongo_config.url)
+    database = client.get_database()
     return database
 
 

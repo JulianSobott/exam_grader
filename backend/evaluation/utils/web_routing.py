@@ -31,8 +31,8 @@ def group(rule: str, *sub_routes: List[SimpleRoute]) -> List[SimpleRoute]:
 
 
 def _route(rule: str, request_class, method: str, **options) -> List[SimpleRoute]:
-    def inner(*_, **__):
-        return request_class._handle_request(request)
+    def inner(*_, **url_params):
+        return request_class._handle_request(request, url_params)
 
     function_name = f"{request_class}_{method}"
     if request_class == todo:

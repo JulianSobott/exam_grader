@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask
 from flask_cors import CORS
 
 import api
@@ -20,15 +20,14 @@ routes(
                 post("/rename_and_fill", api.tools.RenameAndFillRequest),
                 get("/test_files", api.tools.TestFilesRequest),
             ),
+            get("/overview", api.overview.OverviewRequest),
             group(
                 "/grading",
-                get("/<submission_name>", api.todo),
-                group(
-                    "/<submission_name>",
-                    post("/points", api.todo),
-                    post("/comment", api.todo),
-                    post("/bookmark", api.todo)
-                )
+                get("/submissions/<submission_name>", api.grading.SubmissionsRequest),
+                post("/points", api.grading.PointsRequest),
+                post("/comment", api.grading.CommentRequest),
+                post("/bookmark", api.grading.BookmarkRequest),
+                post("/status", api.grading.StatusRequest)
             ),
             group(
                 "/statistics",
@@ -38,9 +37,11 @@ routes(
     )
 )
 
-@app.route("/")
-def p():
-    return "Hello"
+
+@app.route("/test/<name>")
+def p(name):
+    return "Hello " + name
+
 
 if __name__ == '__main__':
     app.run(port=5000)

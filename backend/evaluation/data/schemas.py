@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
-from schema_classes.grading_schema import StepFailed
+from schema_classes.grading_schema import StepFailed, Testcase
 from schema_classes.overview_schema import GradingStatus
 
 
@@ -31,6 +31,7 @@ class Submission:
     bookmarked: bool
     status_grading: GradingStatus
     step_failed: Optional[StepFailed] = None
+    compile_error_code: Optional[str] = None
 
 
 @dataclass_json
@@ -40,7 +41,14 @@ class Task:
     max_points: float
     subtasks: List["Subtask"]
     bookmarked: bool
+    comment: str = ""
     description: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class Testcases:
+    testcases: List[Testcase]
 
 
 @dataclass_json
@@ -51,7 +59,9 @@ class Subtask:
     max_points: float
     points: float
     bookmarked: bool
+    comment: str = ""
     code_snippets: Optional[List["CodeSnippet"]] = None  # only optional to make loading from db easier
+    testcases: Optional[List[Testcase]] = None
 
 
 @dataclass_json

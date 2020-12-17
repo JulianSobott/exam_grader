@@ -4,8 +4,11 @@ import sys
 from dataclasses import dataclass, field
 from typing import List, Callable
 
-from common import submission_names
+from common import submission_names, structured_submissions, raw_submissions
 from tool_api import *
+from utils.project_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def run():
@@ -15,7 +18,7 @@ def run():
         arguments=[
             Argument("-q", "--quiet", action="store_true"),
             Argument("-Q", "--Quiet", action="store_true"),
-            Argument("-QQ", "--QUIET",  action="store_true"),
+            Argument("-QQ", "--QUIET", action="store_true"),
         ],
         commands=[
             Command(
@@ -23,9 +26,10 @@ def run():
                 aliases=["1"],
                 help="=description",
                 description="copy all submissions to a new folder structure",
-                action=task(lambda args: copy_files() if not args.test_names else test_files(),
-                            "rename those files which have an incorrect name",
-                            ["renamed", "test"]),
+                action=task(
+                    lambda args: task_copy_raw_to_structured() if not args.test_names else cli_output_file_failures(),
+                    "rename those files which have an incorrect name",
+                    ["renamed", "test"]),
                 arguments=[
                     Argument("--test-names", action="store_true")
                 ]
@@ -35,7 +39,7 @@ def run():
                 aliases=["2"],
                 description="Execute after all files are properly named",
                 help="=description",
-                action=task(lambda args: renamed_files(),
+                action=task(lambda args: task_renamed_files(),
                             "test",
                             ["test"])
             ),
@@ -95,6 +99,19 @@ def run():
                 description="create an exel file with points and matrikel numbers",
                 help="=description",
                 action=lambda args: create_exel_table(),
+            ),
+            Command(
+                name="reset_all",
+                aliases=["0"],
+                description="Removes all data from the db, deletes all structured submissions! ONLY BEFORE GRADING!",
+                help="=description",
+                action=task(lambda args: debug_reset_all())
+            ),
+            Command(
+                name="dummy",
+                description="Reset data, copy, fill, test. Use for testing only!",
+                help="=descriptiion",
+                action=task(lambda args: dummy_setup())
             )
         ],
     ).parse()
@@ -109,11 +126,19 @@ def run():
     parsed.func(parsed)
 
 
+def dummy_setup():
+    debug_reset_all()
+    task_copy_raw_to_structured()
+    task_renamed_files()
+    run_tests_for_all()
+    start_webserver()
+
+
 def handle_run_tests_task(args):
     if args.submissions:
         in_sub_list = list(map(str.strip, args.submissions.split(",")))
         out_sub_list = submission_names(in_sub_list)
-        logger.info(f"[cli] running tests for: {out_sub_list}")
+        logger.info(f"running tests for: {out_sub_list}")
         run_tests_for_submissions(out_sub_list)
     else:
         run_tests_for_all()
@@ -133,8 +158,8 @@ def task(func: Callable, message: str = "", next_tasks: List[str] = ()):
 
 
 def show_env_variables():
-    print(f"submission_folder={submission_folder}")
-    print(f"submission_raw_folder={submission_raw_folder}")
+    print(f"submission_folder={structured_submissions}")
+    print(f"submission_raw_folder={raw_submissions}")
 
 
 class Argument:

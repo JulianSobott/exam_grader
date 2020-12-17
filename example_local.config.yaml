@@ -1,0 +1,6 @@
+submissions_folder: /tmp/submissions
+reference_project: /tmp/sandbox/
+canvas_token: <YOUR_TOKEN>
+mongodb:
+  run_local: True
+  url: mongodb+srv://User:sdffsdfsdf@cluster0.upkff.mongodb.net/defaultdb?retryWrites=true&w=majority

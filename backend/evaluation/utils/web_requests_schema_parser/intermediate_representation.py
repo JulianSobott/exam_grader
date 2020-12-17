@@ -42,7 +42,7 @@ class ReferenceType:
 @dataclass
 class TypeDefinition:
     type_type: type
-    data: Union[ObjectType, IntType, FloatType, StringType, BooleanType, EnumType]
+    data: Union[ObjectType, IntType, FloatType, StringType, BooleanType, EnumType, ReferenceType]
     name: str = None
 
 

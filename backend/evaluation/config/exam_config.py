@@ -19,13 +19,13 @@ class CodeType(Enum):
 @dataclass
 class CodeSnippetConfig:
     code_type: CodeType
-    name: str = None
+    name: Optional[str] = None
 
 
 @dataclass
 class SubTaskConfig:
     description: str
-    points: str
+    points: float
     code_snippets: List[CodeSnippetConfig]
 
 
@@ -43,6 +43,13 @@ class ExamConfig:
 
 
 config = None
+
+
+def get_exam_config_else_raise() -> ExamConfig:
+    conf, err = get_exam_config()
+    if err:
+        raise ValueError(err)
+    return conf
 
 
 def get_exam_config() -> Tuple[Optional[ExamConfig], error]:
@@ -66,6 +73,6 @@ def get_required_files() -> Tuple[Optional[List[str]], error]:
     if err:
         return None, err
     files = []
-    for t in conf.tasks:
-        files.append(f"{t}.java")
+    for t in conf.tasks.values():
+        files.append(f"{t.class_name}.java")
     return files, None
