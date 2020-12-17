@@ -29,10 +29,12 @@ typedef object SubmissionData
 
 
 typedef object Identifier
-    name: str
-    type: {SUBMISSION, TASK, SUB_TASK} IdentifierType
-    ?parent: $Identifier
+    elements[]: str # element name last, parents first, ordered
 
+
+typedef object SetError
+    err_msg: str
+    err_type: {RESOURCE_NOT_ALLOWED_FOR_IDENTIFIER, NOT_FOUND} SetErrorType
 
 server = http://localhost:5000/api/v1
 
@@ -44,6 +46,9 @@ submissions
             200
                 submission: $SubmissionData
             404
+                err_msg: str
+            500
+                err_msg: str
 
 points
     uri: /grading/points
@@ -53,7 +58,8 @@ points
             points: float
         <-
             200
-            404 # identifier not found
+            400
+                error: $SetError
 
 comment
     uri: /grading/comment
@@ -63,7 +69,10 @@ comment
             comment: str
         <-
             200
+            400
+                error: $SetError
             404 # identifier not found
+                err_msg: str
 
 bookmark
     uri: /grading/bookmark
@@ -73,8 +82,8 @@ bookmark
             bookmarked: bool
         <-
             200
-            404 # identifier not found
-
+            400
+                error: $SetError
 
 status
     uri: /grading/status
@@ -84,4 +93,5 @@ status
             status: {NOT_STARTED, ACTIVE, DONE} GradingStatus
         <-
             200
-            404 # Identifier not found
+            400
+                error: $SetError

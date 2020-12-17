@@ -1,9 +1,17 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
+from dataclasses_json import dataclass_json
 
 
+@dataclass
+class MongoDbConfig:
+    run_local: bool = False
+    url: str = "mongodb://localhost:27017/"
+
+
+@dataclass_json
 @dataclass
 class LocalConfig:
     """Stores the data of the local config file.
@@ -12,10 +20,10 @@ class LocalConfig:
     submissions_folder: Path
     reference_project: Path  # path to folder with gradle project in it
     canvas_token: str = None
-    pymongo_password: str = None
+    mongodb: MongoDbConfig = field(default_factory=MongoDbConfig)
 
 
-cfg = None
+cfg: LocalConfig = None
 
 
 def get_local_config(reload=False) -> LocalConfig:
@@ -24,11 +32,9 @@ def get_local_config(reload=False) -> LocalConfig:
         root_path = Path(__file__).parents[3]
         config_path = root_path.joinpath("local.config.yaml")
         with open(config_path, "r") as f:
-            yaml_conf = yaml.safe_load(f)
-        cfg = LocalConfig(
-            Path(yaml_conf["submissions_folder"]),
-            Path(yaml_conf["reference_project"]),
-            yaml_conf["canvas_token"],
-            yaml_conf["pymongo_password"]
-        )
+            data = yaml.safe_load(f)
+            temp: LocalConfig = LocalConfig.from_dict(data)
+            temp.submissions_folder = Path(temp.submissions_folder)
+            temp.reference_project = Path(temp.reference_project)
+            cfg = temp
     return cfg

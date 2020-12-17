@@ -88,12 +88,12 @@ class $name(ABC):
         data_class = instance._json_mapper[method]
         json_data = request.data
         data = None
-        valid_json = False
         try:
+            if not json_data:
+                json_data = "{}"    # requests with no body
             data = data_class.from_json(json_data)
-            valid_json = True
-        except:
-            pass
+        except BaseException as e:
+            return make_response(f"Malformed body: {e}", 400)
         response_data = instance.__getattribute__(f"handle_{method}")(data, **url_params)
         response = make_response(response_data.to_json(), response_data.status_code)
         response.mimetype = "application/json"

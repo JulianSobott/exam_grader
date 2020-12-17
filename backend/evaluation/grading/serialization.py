@@ -3,28 +3,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from common import submission_results_folder
-from schema_classes.gradings_schema import Gradings
 from utils.project_logging import get_logger
 
 logger = get_logger(__name__)
 
-_gradings_file_path = submission_results_folder.joinpath("gradings.json")
-
-
-def load_gradings() -> Gradings:
-    with open(_gradings_file_path, "r") as f:
-        gradings = Gradings.from_json(f.read())
-    return gradings
-
-
-def save_grading(gradings: Gradings):
-    with open(_gradings_file_path, "w") as f:
-        f.write(gradings.to_json())
-
 
 def create_exel_table(path: Path = Path("OOP_ZK1_PunkteStudierende.xlsx")):
-    grading = load_gradings()
+    grading = load_gradings()  # TODO
     data = {"MatNr": [], "Punkte": []}
     for submission in grading.submissions:
         submission_points = 0

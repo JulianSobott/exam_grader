@@ -41,6 +41,7 @@ class Task:
     max_points: float
     subtasks: List["Subtask"]
     bookmarked: bool
+    comment: str = ""
     description: Optional[str] = None
 
 
@@ -58,6 +59,7 @@ class Subtask:
     max_points: float
     points: float
     bookmarked: bool
+    comment: str = ""
     code_snippets: Optional[List["CodeSnippet"]] = None  # only optional to make loading from db easier
     testcases: Optional[List[Testcase]] = None
 

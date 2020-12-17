@@ -1,9 +1,12 @@
+from typing import Optional, Tuple
+
 from config.exam_config import get_exam_config
 from data.internal import exams, submissions
 from data.schemas import Exam, Submission, Student, Task, Subtask, Testcases
-from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData, StepFailed
+from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData, StepFailed, \
+    SetErrorType
 from schema_classes.overview_schema import OverviewGET200Response, SubmissionOverview, ExamPoints, GradingStatus
-from utils.p_types import error
+from utils.p_types import error, new_error
 
 OverviewData = OverviewGET200Response
 exam_name: str = None
@@ -74,9 +77,11 @@ def overview_data() -> OverviewData:
     return OverviewGET200Response(exam_name, len(overview_submissions), num_passed, overview_submissions)
 
 
-def submission_data(submission_name: str) -> SubmissionData:
+def submission_data(submission_name: str) -> Tuple[Optional[SubmissionData], error]:
     """db Submission to frontend submission"""
     res = submissions().find_one({"full_name": submission_name, "exam_name": exam_name})
+    if not res:
+        return None, new_error(f"Submission in exam not found: '{submission_name}' - '{exam_name}'", error_code=404)
     sub: Submission = Submission.from_dict(res)
     num_correct = 0
     num_subtasks = 0
@@ -100,23 +105,28 @@ def submission_data(submission_name: str) -> SubmissionData:
         tasks.append(
             TaskData(t.name, task_points, task_max_points, t.bookmarked, subtasks))
     return SubmissionData(sub.student.name, sub.student.student_number, num_correct, num_subtasks,
-                          points_sub, max_points_sub, tasks, sub.step_failed)
+                          points_sub, max_points_sub, tasks, sub.step_failed), None
 
 
-def set_points(identifier: Identifier) -> error:
-    pass
+RESOURCE_SUBMISSION = 1 << 1
+RESOURCE_TASK = 1 << 2
+RESOURCE_SUBTASK = 1 << 3
 
 
-def set_comment(identifier: Identifier) -> error:
-    pass
+def set_points(identifier: Identifier, points: float) -> Optional[SetErrorType]:
+    return _set(identifier, "points", points, RESOURCE_SUBTASK)
 
 
-def set_bookmark(identifier: Identifier) -> error:
-    pass
+def set_comment(identifier: Identifier, comment: str) -> Optional[SetErrorType]:
+    return _set(identifier, "comment", comment, RESOURCE_SUBTASK | RESOURCE_TASK)
 
 
-def set_status(identifier: Identifier) -> error:
-    pass
+def set_bookmark(identifier: Identifier, bookmarked: bool) -> Optional[SetErrorType]:
+    return _set(identifier, "bookmarked", bookmarked, RESOURCE_SUBTASK | RESOURCE_TASK | RESOURCE_SUBMISSION)
+
+
+def set_status(identifier: Identifier, status: GradingStatus) -> Optional[SetErrorType]:
+    return _set(identifier, "status_grading", status.value, RESOURCE_SUBMISSION)
 
 
 def update_test_results(submission_name: str, error_message: str, step_failed: StepFailed):
@@ -134,6 +144,37 @@ def set_testcases(submission_name, task_name: str, subtask_name: str, testcases:
                              {"$set": {"tasks.$[i].subtasks.$[j].testcases": testcases.to_dict()["testcases"]}},
                              array_filters=[{"i.name": task_name}, {"j.name": subtask_name}]
                              )
+
+
+SUBMISSION_IDX = 0
+TASK_IDX = 1
+SUBTASK_IDX = 2
+
+
+def _build_identifier_parts(identifier: Identifier) -> Tuple[str, list]:
+    ret = ""
+    array_filters = []
+    if len(identifier.elements) >= 2:
+        ret += "tasks.$[i]."
+        array_filters.append({"i.name": identifier.elements[TASK_IDX]})
+    if len(identifier.elements) >= 3:
+        ret += "subtasks.$[j]."
+        array_filters.append({"j.name": identifier.elements[SUBTASK_IDX]})
+    return ret, array_filters
+
+
+def _set(identifier: Identifier, key: str, value, allowed_resources: int) -> Optional[SetErrorType]:
+    if not ((1 << len(identifier.elements)) & allowed_resources):
+        return SetErrorType.RESOURCE_NOT_ALLOWED_FOR_IDENTIFIER
+    set_uri, array_filters = _build_identifier_parts(identifier)
+    res = submissions().update_one({"exam_name": exam_name, "full_name": identifier.elements[SUBMISSION_IDX]},
+                                   {"$set": {f"{set_uri}{key}": value}},
+                                   array_filters=array_filters
+                                   )
+    assert res.matched_count < 2, f"Duplicated element in DB! {identifier.elements}"
+    if res.matched_count != 1:
+        return SetErrorType.NOT_FOUND
+    return None
 
 
 def debug_reset_all_data():
