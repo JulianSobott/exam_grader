@@ -1,14 +1,28 @@
 // later: add keyboard-shortcuts
-var url_base = "http://localhost:5000//api/v1"
+var url_base = "http://localhost:5000/api/v1"
 
 function bookmarkClick(id) {
+    // bookmark-submission-task-subtask
     console.log(id)
-    var url = url_base + "/grading/bookmark";
-    var param = "identifier=   &bookmarked=" + true;
-    var request = new XMLHttpRequest();
-    request.open("POST", url, true);
-    request.setRequestHeader("Bookmark", "/correction");
-    request.send(param);
+    const obj = {
+        "identifier":
+            {
+                elements: identifiers
+            },
+        bookmarked: bookmarked
+    }
+    fetch(url_base + "/grading/bookmark", {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(obj)
+    }).then(function (res) {
+        return res.json();
+    }).then(function (data) {
+        console.log(data)
+    })
 }
 
 function set_points(name_id) {
