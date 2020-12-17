@@ -1,48 +1,138 @@
+{# for a list of the parameters used in the sections refer to /docs #}
+
 <!-- building the report from header and body -->
-{% macro create_report(var) -%}
-    {{create_header(var)}}
-    {{create_body(var)}}
+{% macro create_report(report) -%}
+    {{create_header(report)}}
+    {{create_body(report)}}
 {%- endmacro %}
 
 <!-- creating report header -->
-{% macro create_header(var) -%}
-    {% set student_name = var.name%}
-    {% set matrikel = var.matrikel%}
-    {% set num_tested = var.tested%}
-    {% set num_correct = var.success%}
-    {% set num_incorrect = var.failed%}
-
+    {#  general information about the students submission #}
+{% macro create_header(report) -%}
     <div class="header_info">
-        <h1>{{student_name}}, {{matrikel}}</h1>
-        <div>
-            <div> {{ subtasks_cur }} / {{ subtasks_incor }}</div>
-            <div> {{ points }} / {{ max_points }}</div>
+        <h1>{{ report.name }}, {{ report.students_number }}</h1>
+        {#  FIXME class does not work #}
+        <div class="sub_content">
+            <dl class="row">
+                <dt class="col-sm-3">Subtasks: </dt>
+                <dd class="col-sm-9">{{ report.num_correct_subtasks }} / {{ report.num_subtasks }}</dd>
+
+                <dt class="col-sm-3">Points: </dt>
+                <dd class="col-sm-9">{{ report.points }} / {{ report.max_points }}</dd>
+
+                {% if report.step_failed %}
+                    <dt class="col-sm-3">Step failed: </dt>
+                    <dd class="col-sm-9">{{ report.step_failed }}</dd>
+                {% endif %}
+            </dl>
         </div>
     </div>
 {%- endmacro %}
 
 <!-- creating report body from tasks -->
-{% macro create_body(var) -%}
-    <h4 style="margin-top: 10%">Code Review</h4>
-    {% for task in tasks%}
-        {{create_task(task)}}
-    {% endfor%}
+    {#  containes tasks & subtask with snippets, points, comments etc. #}
+{% macro create_body(report) -%}
+    <div class="accordion">
+        {% for task in report.tasks%}
+            {# create a unique id for every task #}
+            {% set id = task.name|lower()|replace(" ","") %}
+            <div class="accordion-item">
+                {{ create_task(task, id) }}
+            </div>
+        {% endfor %}
+    </div>
 {%- endmacro %}
 
-<!-- creating the task -->
-    <!-- point/comment input -->
-    <!-- code snippet -->
-    <!-- assertion message -->
-{% macro create_task(task) -%}
-    <h4>{{taskname}}</h4>
-    <div> {{ task_dec }}</div>
-    <label>Points: </label>
-    <input type="number" step="0.5" value="{{ task.auto_points }}" min="0" max="{{ task.max_points }}"> / {{task.max_points}}
-    <label>Comment: </label>
-    <textarea></textarea>
-    {% for snippet in task-code_snippets%}
-        <div> {{snippet.class_name}} - {{snipped.name}}</div>
-        <div> {{snippet.code}} </div>
-        <div> {{snippet.error_info}} </div>
-    {% endfor%}
+<!-- create a task (and subtask) -->
+{% macro create_task(task, id) -%}
+    <div class="row" style="margin-top: 5%">
+        <div class="col-sm">
+             <h2> {{ task.name }}</h2>
+        </div>
+        <div class="col-sm-2">
+            <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
+                 </svg>
+                {# enroll #}
+            </button>
+        </div>
+        <div class="col-sm mt-2">
+            {% if task.bookmarked %}
+                {# <mark>Bookmark!</mark> #}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+                </svg>
+            {% endif %}
+        </div>
+    </div>
+
+    {#  FIXME class does not work #}
+     <div class="sub_content accordion-collapse collapse" id="{{ id }}">
+            <dl class="row">
+                <dt class="col-sm-3">Points: </dt>
+                <dd class="col-sm-9">{{ task.points }} / {{ task.max_points }}</dd>
+            </dl>
+         {% for subtask in task.sub_tasks %}
+             {# create a unique id for every subtask #}
+             {% set id = subtask.name|lower()|replace(" ","") %}
+             {{ create_subtask(subtask, id) }}
+        {% endfor %}
+        </div>
+    <div>
+{%- endmacro %}
+
+<!-- creating the subtask -->
+{% macro create_subtask(subtask, id) -%}
+        <div class="row" style="margin-top: 5%">
+            <div class="col-sm">
+                 <h3>{{subtask.name}}</h3>
+            </div>
+            <div class="col-sm-2">
+                <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
+                    </svg>
+                    {# enroll #}
+                </button>
+            </div>
+            <div class="col-sm mt-2">
+                {% if subtask.bookmarked %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+                    </svg>
+                    {# <mark>Bookmark!</mark> #}
+                {% endif %}
+            </div>
+        </div>
+
+    {# FIXME class does not work #}
+    <div class="sub_content accordion-collapse collapse" id="{{ id }}">
+        <div class="mb-3"> {{ subtask.description }}</div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Points</span>
+            <input class="form-control" type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}">
+            <span class="input-group-text"> / {{ subtask.max_points}}</span>
+        </div>
+        <div class="input-group mb-3">
+            <span class="input-group-text">Comment</span>
+            <textarea class="form-control"></textarea>
+        </div>
+        {% for snippet in subtask.code_snippets%}
+            <div class="mb-3"> {{snippet.class_name}} - {{snippet.name}}</div>
+            {%  if snippet.found %}
+                <div class="rounded border mb-3">
+                    <pre><code>
+                        {{snippet.code}}
+                    </code></pre>
+                </div>
+            {%  endif %}
+            {# assertion errors #}
+            {% for case in subtask.testcases %}
+                <div> {{ case.name }}</div>
+                <div> {{ case.passed }}</div>
+                <div> {{ case.assertion }} </div>
+            {%  endfor %}
+        {% endfor %}
+    </div>
 {%- endmacro %}

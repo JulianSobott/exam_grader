@@ -2,15 +2,6 @@
 {% from 'correction_logic.jinja2' import create_report %}
 
 {% block body %}
-{#     <div class="buttonbar">#}
-{#         <button onclick="">Previous</button>#}
-{#         <button onclick="">Finished</button>#}
-{#         <button onclick="">Unfinished</button>#}
-{#         <button onclick="">Bookmark</button>#}
-{#         <button>List</button>#}
-{#         <button onclick="">Next</button>#}
-{#     </div>#}
-
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="/">Upload</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +20,6 @@
     </nav>
 
     <div class="content">
-        {{ create_report(var) }}
+        {{ create_report(report) }}
     </div>
-
 {% endblock %}
