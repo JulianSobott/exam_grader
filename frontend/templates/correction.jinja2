@@ -9,12 +9,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-item nav-link active" href="#">Previous<span class="sr-only">(current)</span></a>
+                <a class="nav-item nav-link active" href="/correction/{{ current_num - 1 }}">Previous<span class="sr-only">(current)</span></a>
                 <a class="nav-item nav-link" href="/list">List</a>
-                <a class="nav-item nav-link" href="#">Bookmark</a>
-                <a class="nav-item nav-link" href="#">Finish</a>
-                <a class="nav-item nav-link" href="#">Unfinish</a>
-                <a class="nav-item nav-link disabled" href="#">Next</a>
+                <a class="nav-item nav-link" id="finish_link" href="#">Finish</a>
+                <a class="nav-item nav-link" id="unfinish_link" href="#">Unfinish</a>
+                <a class="nav-item nav-link disabled" href="/correction/{{ current_num + 1 }}">Next</a>
             </div>
         </div>
     </nav>

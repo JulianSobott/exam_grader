@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, render_template_string
+from flask import Flask, request, render_template, render_template_string, redirect
 from schema_classes import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
 
 app = Flask(__name__)
@@ -27,9 +27,10 @@ def file_picker():
         return render_template("selector.jinja2", text="filepath")
 
 
-@app.route("/correction")
-def correction():
-    var = {
+@app.route("/correction/<student>", methods=['GET'])
+def correction(student):
+    student_num = int(student)
+    reports = [{
         "name": "Sebastian",
         "students_number": 81194,
         "num_correct_subtasks": 2,
@@ -47,7 +48,7 @@ def correction():
                 "description": "The task is to do this and that",
                 "points": 3.5,
                 "max_points": 5,
-                "bookmarked": True,
+                "bookmarked": False,
                 "code_snippets": [{
                     "name": "Snippet 1",
                     "class_name": "ClassTester.java",
@@ -77,9 +78,17 @@ def correction():
                     "assertion": "The assertion to be passed"
                 }]
             }]
+        }, {
+            "name": "Task 2"
         }]
-    }
-    return render_template("correction.jinja2", report=var)
+    }, {
+        "name": "Another"
+    }]
+    if student_num < 0:
+        return redirect("/correction/" + str(len(reports)-1))
+    if student_num >= len(reports):
+        return redirect("/correction/" + str(0))
+    return render_template("correction.jinja2", report=reports[student_num], current_num=student_num)
 
 
 @app.route("/list")
