@@ -14,6 +14,7 @@ class CodeType(Enum):
     CONSTRUCTOR = "CONSTRUCTOR"
     ATTRIBUTES = "ATTRIBUTES"
     CLASS_HEADER = "CLASS_HEADER"
+    CLASS = "CLASS"
 
 
 @dataclass

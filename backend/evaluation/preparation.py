@@ -11,7 +11,8 @@ from config.exam_config import get_required_files, get_exam_config_else_raise, E
     CodeSnippetConfig, CodeType
 from data.api import insert_submission
 from data.schemas import Submission, Student, Subtask, Task, CodeSnippet
-from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus
+from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus, \
+    get_full_class
 from gittools import git_copied_files, git_renamed_files
 from schema_classes.overview_schema import GradingStatus
 from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
@@ -202,6 +203,10 @@ def code_snippets_for_subtask(submission_name: str, class_name: str, code_snippe
             CodeType.CONSTRUCTOR: {
                 "function": lambda: get_constructor_code(code_folder, class_name),
                 "name": "Constructor"
+            },
+            CodeType.CLASS: {
+                "function": lambda: get_full_class(code_folder, class_name),
+                "name": "Class"
             }
         }
         conf = d[snippet_config.code_type]
