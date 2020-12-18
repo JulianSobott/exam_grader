@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, render_template_string, redirect
-from schema_classes import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
+from schema_classes.tools_schema import PrepareRequestBase, PreparePOST400Response, PreparePOST200Response
+from schema_classes.overview_schema import OverviewRequestBase, OverviewGET200Response
 
 app = Flask(__name__)
 
@@ -93,9 +94,10 @@ def correction(student):
 
 @app.route("/list")
 def exam_list():
+
     var2 = {
         "name": "Vincent",
-        "passed": True,
+        "passed": False,
         "points": 45,
         "max_points": 50,
         "bookmark": True,
@@ -111,6 +113,13 @@ def exam_list():
     }
     dummy = [var2, var3]
     return render_template("list.jinja2", reports=dummy)
+
+
+@app.route("/list")
+def exam_list_header():
+    res, err = OverviewRequestBase.get()
+    if isinstance(res, OverviewGET200Response):
+        return render_template("list.jinja2", reports=res)
 
 
 if __name__ == '__main__':
