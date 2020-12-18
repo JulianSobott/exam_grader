@@ -102,7 +102,5 @@ submit_to_canvas
         ->
         <-
             200
-            400
-                err_msg: str
             500
                 err_msg: str

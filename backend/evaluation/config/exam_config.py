@@ -33,6 +33,7 @@ class SubTaskConfig:
 class TaskConfig:
     class_name: str
     subtasks: Dict[str, SubTaskConfig]
+    canvas_question_id: str
 
 
 @dataclass_json

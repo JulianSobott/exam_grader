@@ -146,10 +146,6 @@ def set_testcases(submission_name, task_name: str, subtask_name: str, testcases:
                              )
 
 
-def get_grading_data():
-    pass
-
-
 SUBMISSION_IDX = 0
 TASK_IDX = 1
 SUBTASK_IDX = 2

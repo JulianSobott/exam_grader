@@ -5,6 +5,7 @@ import requests
 
 from config.exam_config import get_exam_config_else_raise
 from config.local_config import get_local_config
+from utils.p_types import error, new_error
 
 
 @dataclass
@@ -14,7 +15,8 @@ class QuestionGrading:
     comment: Optional[str]  # None for no changes
 
 
-def update_scores_comments(submission_id: str, question_gradings: List[QuestionGrading], fudge_points: float = None):
+def update_scores_comments(submission_id: str, question_gradings: List[QuestionGrading], fudge_points: float = None) \
+        -> error:
     data = {
         "quiz_submissions": [
             {
@@ -30,8 +32,10 @@ def update_scores_comments(submission_id: str, question_gradings: List[QuestionG
             "comment": grade.comment
         }
     res = api_call(f"/submissions/{submission_id}", data, requests.put)
-    print(res)
-    print(str(res.content, "utf8"))
+    if res.status_code == 200:
+        return None
+    else:
+        return new_error(res.text)
 
 
 def api_call(uri: str, data: dict, method) -> requests.Response:
