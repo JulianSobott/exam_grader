@@ -91,28 +91,6 @@ def correction(student):
         return redirect("/correction/" + str(0))
     return render_template("correction.jinja2", report=reports[student_num], current_num=student_num)
 
-@app.route("/list")
-def exam_list():
-
-    var2 = {
-        "name": "Vincent",
-        "passed": False,
-        "points": 45,
-        "max_points": 50,
-        "bookmark": True,
-        "status": "angefangen"
-    }
-    var3 = {
-        "name": "Julian",
-        "passed": True,
-        "points": 50,
-        "max_points": 50,
-        "bookmark": False,
-        "status": "unbearbeitet"
-    }
-    dummy = [var2, var3]
-    return render_template("list.jinja2", reports=dummy)
-
 
 @app.route("/list")
 def exam_list_header():
