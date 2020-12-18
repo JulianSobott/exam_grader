@@ -16,6 +16,20 @@ tasks:
           - code_type: CONSTRUCTOR
           - code_type: ATTRIBUTES
           - code_type: CLASS_HEADER
+        static_tests:
+          class_header:
+            name: MyClass1
+          attributes:
+            - name: i
+              type: int
+              access_modifiers: [ private ]
+            - name: x
+              type: String
+              access_modifiers: [ private ]
+          methods:
+            - name: getNumber
+              access_modifiers: [ public ]
+              return_type: int
       b:
         description: Another cool program
         points: 1

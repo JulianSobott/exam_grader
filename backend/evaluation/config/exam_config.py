@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Dict, Tuple, Optional
 
@@ -6,6 +6,9 @@ import yaml
 from dataclasses_json import dataclass_json
 
 from config.local_config import get_local_config
+from static_code_testing.attributes import AttributeTest
+from static_code_testing.class_declaration import ClassTest
+from static_code_testing.method import MethodTest
 from utils.p_types import error, new_error
 
 
@@ -24,10 +27,18 @@ class CodeSnippetConfig:
 
 
 @dataclass
+class StaticTests:
+    class_header: Optional[ClassTest] = None
+    attributes: List[AttributeTest] = field(default_factory=list)
+    methods: List[MethodTest] = field(default_factory=list)
+
+
+@dataclass
 class SubTaskConfig:
     description: str
     points: float
     code_snippets: List[CodeSnippetConfig]
+    static_tests: Optional[StaticTests] = None
 
 
 @dataclass

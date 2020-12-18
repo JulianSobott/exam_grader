@@ -91,7 +91,7 @@ class TestAttribute(unittest.TestCase):
     def test_valid(self):
         failures = test_attribute(
             AttributeTest("color", "String", [AccessModifier.PRIVATE]),
-            "private String color;"
+            "private \n\n class\n   private String color; \n some\n"
         )
         self.assertEqual([], failures)
 

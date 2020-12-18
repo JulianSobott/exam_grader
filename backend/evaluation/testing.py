@@ -3,16 +3,20 @@ import re
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
-from typing import Tuple, Optional, List
+from dataclasses import dataclass, field
+from typing import Tuple, Optional, List, Dict
 
 from dataclasses_json import dataclass_json
 
 from common import structured_submissions, iter_submissions_folders
+from config.exam_config import get_exam_config_else_raise
 from config.local_config import get_local_config
 from data.api import update_test_results, set_testcases
 from data.schemas import Testcases
 from schema_classes.grading_schema import StepFailed, Testcase
+from static_code_testing.attributes import test_attribute
+from static_code_testing.class_declaration import test_class
+from static_code_testing.method import test_method
 from utils.project_logging import get_logger
 
 logger = get_logger(__name__)
@@ -29,6 +33,7 @@ class SubmissionTestResult:
     passed: bool
     error_message: Optional[str] = ""
     failed_task: Optional[StepFailed] = None
+    static_test_results: Dict[str, Dict[str, List[Testcase]]] = field(default_factory=dict)  # task, subtask
 
 
 @dataclass_json
@@ -59,7 +64,9 @@ def run_test_for_submission(submission_name: str):
     logger.info(f"[{submission_name}] testing: {submission_name} ...")
     res = run_tests(submission_name)
     ret, failed = failed_task(res, submission_name)
-    return SubmissionTestResult(submission_name, not failed, ret[1] if failed else None, ret[0] if failed else None)
+    static_results = run_static_tests(submission_name)
+    return SubmissionTestResult(submission_name, not failed, ret[1] if failed else None, ret[0] if failed else None,
+                                static_results)
 
 
 def run_tests(submission_name: str) -> subprocess.CompletedProcess:
@@ -78,6 +85,37 @@ def run_tests(submission_name: str) -> subprocess.CompletedProcess:
     except subprocess.TimeoutExpired as e:
         res = subprocess.CompletedProcess(command, 27, stdout=e.stdout, stderr=e.stderr)
     return res
+
+
+def _testcase_from_failures(name: str, failures: list) -> Testcase:
+    if failures:
+        return Testcase(name, False, ", ".join(map(str, failures)))
+    return Testcase(name, True)
+
+
+def run_static_tests(submission_name: str) -> Dict[str, Dict[str, List[Testcase]]]:
+    cfg = get_exam_config_else_raise()
+    results = {}
+    for task_name, task in cfg.tasks.items():
+        results[task_name] = {}
+        with open(structured_submissions.joinpath(submission_name).joinpath(task.class_name + ".java")) as f:
+            code = f.read()
+        for subtask_name, subtask in task.subtasks.items():
+            testcases = []
+            tests = subtask.static_tests
+            if tests is None:
+                continue
+            if tests.class_header:
+                f = test_class(tests.class_header, code)
+                testcases.append(_testcase_from_failures(f"Class {tests.class_header.name}", f))
+            for method in tests.methods:
+                f = test_method(method, code)
+                testcases.append(_testcase_from_failures(f"method: {method.name}", f))
+            for attribute in tests.attributes:
+                f = test_attribute(attribute, code)
+                testcases.append(_testcase_from_failures(f"attribute: {attribute.name}", f))
+            results[task_name][subtask_name] = testcases
+    return results
 
 
 def extract_error_message(output: str, task: str, stderr_content: str) -> Tuple[str, bool]:
@@ -133,8 +171,14 @@ def save_test_results(results: TestResults):
         submission_path = reports_folder.joinpath(res.submission_name).joinpath("test")
         update_test_results(res.submission_name, res.error_message, res.failed_task)
 
+        testcases = {}
+        # static
+        for task_name, task in res.static_test_results.items():
+            testcases[task_name] = {}
+            for subtask_name, subtask_testcases in task.items():
+                testcases[task_name][subtask_name] = subtask_testcases
+        # dynamic
         if submission_path.exists():
-            testcases = {}
             for test_file in submission_path.iterdir():
                 if test_file.is_file():
                     testsuite_tree = ET.parse(test_file)
@@ -158,9 +202,9 @@ def save_test_results(results: TestResults):
                             testcases[task_name][subtask_name] = []
                         testcases[task_name][subtask_name].append(testcase)
 
-            for task_name, task in testcases.items():
-                for subtask_name, subtask_testcases in task.items():
-                    set_testcases(res.submission_name, task_name, subtask_name, Testcases(subtask_testcases))
+        for task_name, task in testcases.items():
+            for subtask_name, subtask_testcases in task.items():
+                set_testcases(res.submission_name, task_name, subtask_name, Testcases(subtask_testcases))
 
 
 def parse_assertion_error(error_text: str):

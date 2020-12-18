@@ -22,7 +22,7 @@ class ClassType(Enum):
 
 @dataclass
 class ClassTest:
-    class_name: str
+    name: str
     extends: str = None
     implements: List[str] = field(default_factory=list)
     is_abstract: bool = False
@@ -32,9 +32,9 @@ class ClassTest:
 
 def test_class(cls: ClassTest, code: str) -> List[ClassFailure]:
     regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*((?P<abstract>abstract)\s)?\s*((?P<type>\w+)\s)\s*"
-                       + cls.class_name
+                       + cls.name
                        + r"\s*(?P<inheritance>[^{]*)")
-    match = regex.match(code)
+    match = regex.search(code)
     if match is None:
         return [ClassFailure.NAME]
     failures = []
