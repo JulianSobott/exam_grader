@@ -62,7 +62,7 @@ def overview_data() -> OverviewData:
         if sub.student.name not in submissions_intermediate_data:
             submissions_intermediate_data[sub.student.name] = {"overview": None, "points": []}
         if sub.exam_name == exam_name:
-            temp = SubmissionOverview(sub.student.name, False, None, bookmarked, sub.status_grading)
+            temp = SubmissionOverview(sub.student.name, sub.full_name, False, None, bookmarked, sub.status_grading)
             submissions_intermediate_data[sub.student.name]["overview"] = temp
         submissions_intermediate_data[sub.student.name]["points"].append(ExamPoints(sub.exam_name, points, max_points))
 
