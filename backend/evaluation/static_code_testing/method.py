@@ -17,8 +17,8 @@ class MethodFailure(IntEnum):
 @dataclass
 class MethodTest:
     name: str
-    access_modifiers: List[AccessModifier]
-    return_type: str
+    access_modifiers: List[AccessModifier] = field(default_factory=lambda: [AccessModifier.PUBLIC])
+    return_type: str = "void"
     parameters: List[str] = field(default_factory=list)
     parameters_ordered: bool = True
     is_abstract: bool = False

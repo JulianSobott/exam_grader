@@ -25,13 +25,14 @@ def run():
                 name="copy",
                 aliases=["1"],
                 help="=description",
-                description="copy all submissions to a new folder structure",
+                description="prepare submissions for grading.",
                 action=task(
-                    lambda args: task_copy_raw_to_structured() if not args.test_names else cli_output_file_failures(),
+                    lambda args: cli_extract(args),
                     "rename those files which have an incorrect name",
                     ["renamed", "test"]),
                 arguments=[
-                    Argument("--test-names", action="store_true")
+                    Argument("zip_path"),
+                    Argument("--test-names", action="store_true"),
                 ]
             ),
             Command(
@@ -132,6 +133,14 @@ def dummy_setup():
     task_renamed_files()
     run_tests_for_all()
     start_webserver()
+
+
+def cli_extract(args):
+    if args.test_names:
+        cli_output_file_failures()
+    else:
+        task_extract_zip(args.zip_path)
+        cli_output_file_failures()
 
 
 def handle_run_tests_task(args):

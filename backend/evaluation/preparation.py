@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import zipfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -83,7 +84,7 @@ def cli_output_file_failures():
         logger.error(err)
         return
     prev_submission_name = ""
-    for f in sorted(fails, key=lambda file: f.submission_name):
+    for f in sorted(fails, key=lambda file: file.submission_name):
         if f.submission_name != prev_submission_name:
             print("")
         prev_submission_name = f.submission_name
@@ -214,6 +215,17 @@ def code_snippets_for_subtask(submission_name: str, class_name: str, code_snippe
         code_snippet = CodeSnippet(conf["name"], class_name, code_status == CodeStatus.ORIGINAL, code)
         code_snippets.append(code_snippet)
     return code_snippets
+
+
+def task_extract_zip(path: Path) -> Tuple[Optional[List[FileError]], error]:
+    with zipfile.ZipFile(path, "r") as f:
+        f.extractall(raw_submissions)
+
+    err = task_copy_raw_to_structured()
+    if err:
+        return None, err
+    failures, err = get_file_failures()
+    return failures, err
 
 
 if __name__ == '__main__':
