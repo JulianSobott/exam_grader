@@ -1,8 +1,10 @@
 ---
 name: OOP_ZK_2
+canvas_quiz_url: https://aalen.instructure.com/api/v1/courses/2395/quizzes/7491
 tasks:
   1:
     class_name: MyClass1
+    canvas_question_id: 10
     subtasks:
       a:
         description: Program something cool
@@ -14,6 +16,20 @@ tasks:
           - code_type: CONSTRUCTOR
           - code_type: ATTRIBUTES
           - code_type: CLASS_HEADER
+        static_tests:
+          class_header:
+            name: MyClass1
+          attributes:
+            - name: i
+              type: int
+              access_modifiers: [ private ]
+            - name: x
+              type: String
+              access_modifiers: [ private ]
+          methods:
+            - name: getNumber
+              access_modifiers: [ public ]
+              return_type: int
       b:
         description: Another cool program
         points: 1
@@ -21,6 +37,7 @@ tasks:
           - code_type: CLASS_HEADER
   2:
     class_name: MyClass2
+    canvas_question_id: 10
     subtasks:
       a:
         description: Program something cool

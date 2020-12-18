@@ -1,10 +1,10 @@
-import re
 from dataclasses import field
 from typing import Tuple, Optional
 
 import autopep8
 
 from utils.web_requests_schema_parser.intermediate_representation import *
+from utils.web_requests_schema_parser.intermediate_representation import get_simple_attribute, url_params_from_uri
 from utils.web_requests_schema_parser.parser import parse
 from utils.web_requests_schema_parser.templates import template, _Template, to_str
 
@@ -115,10 +115,6 @@ class $name(ABC):
 
     def json_mapper_to_str(self):
         return "{" + ", ".join([f"\"{m.name}\": {m.data_type}" for m in self.handle_methods]) + "}"
-
-
-def url_params_from_uri(uri: str) -> List[str]:
-    return re.findall("<([^>]+)>", uri)
 
 
 @template
@@ -290,13 +286,6 @@ def communication_to_python(communication: Communication) -> List[Tree]:
     request_class = PyRequestClass(endpoint_name, handle_methods, request_methods, uri)
     trees.append(Tree(request_class))
     return trees
-
-
-def get_simple_attribute(attributes: List[SimpleAttribute], name: str, default=None):
-    for a in attributes:
-        if a.key == name:
-            return a.value
-    return default
 
 
 def type_definition_to_python(type_definition: TypeDefinition) -> Tree:

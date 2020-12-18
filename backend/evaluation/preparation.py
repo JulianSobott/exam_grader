@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import zipfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -11,7 +12,8 @@ from config.exam_config import get_required_files, get_exam_config_else_raise, E
     CodeSnippetConfig, CodeType
 from data.api import insert_submission
 from data.schemas import Submission, Student, Subtask, Task, CodeSnippet
-from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus
+from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus, \
+    get_full_class
 from gittools import git_copied_files, git_renamed_files
 from schema_classes.overview_schema import GradingStatus
 from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
@@ -82,7 +84,7 @@ def cli_output_file_failures():
         logger.error(err)
         return
     prev_submission_name = ""
-    for f in sorted(fails, key=lambda file: f.submission_name):
+    for f in sorted(fails, key=lambda file: file.submission_name):
         if f.submission_name != prev_submission_name:
             print("")
         prev_submission_name = f.submission_name
@@ -202,6 +204,10 @@ def code_snippets_for_subtask(submission_name: str, class_name: str, code_snippe
             CodeType.CONSTRUCTOR: {
                 "function": lambda: get_constructor_code(code_folder, class_name),
                 "name": "Constructor"
+            },
+            CodeType.CLASS: {
+                "function": lambda: get_full_class(code_folder, class_name),
+                "name": "Class"
             }
         }
         conf = d[snippet_config.code_type]
@@ -209,6 +215,17 @@ def code_snippets_for_subtask(submission_name: str, class_name: str, code_snippe
         code_snippet = CodeSnippet(conf["name"], class_name, code_status == CodeStatus.ORIGINAL, code)
         code_snippets.append(code_snippet)
     return code_snippets
+
+
+def task_extract_zip(path: Path) -> Tuple[Optional[List[FileError]], error]:
+    with zipfile.ZipFile(path, "r") as f:
+        f.extractall(raw_submissions)
+
+    err = task_copy_raw_to_structured()
+    if err:
+        return None, err
+    failures, err = get_file_failures()
+    return failures, err
 
 
 if __name__ == '__main__':
