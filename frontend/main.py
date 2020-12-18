@@ -91,7 +91,6 @@ def correction(student):
         return redirect("/correction/" + str(0))
     return render_template("correction.jinja2", report=reports[student_num], current_num=student_num)
 
-
 @app.route("/list")
 def exam_list():
 
