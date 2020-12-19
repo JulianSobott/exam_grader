@@ -1,0 +1,11 @@
+- correction
+    - show full code (sebastian)
+    - format testcases (julian)
+    - async bookmarks (no reload) (julian)
+    - set max points button (sebastian)
+    - expand full button (sebastian)
+    - update points async (no reload)
+    - color if full points
+- list
+    - filters
+    - submit to canvas button

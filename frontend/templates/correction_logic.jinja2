@@ -117,36 +117,37 @@
             </div>
         </div>
 
-    {# FIXME class does not work #}
-    <div class="sub_content accordion-collapse collapse" id="{{ id }}">
-        <div class="mb-3"> {{ subtask.description }}</div>
-        <div class="input-group mb-3">
-            <span class="input-group-text">Points</span>
-            <input class="form-control" onchange="set_points('subtask_point_input_{{ id }}')" id="subtask_point_input_{{ id }}" type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}">
-            <span class="input-group-text"> / {{ subtask.max_points}}</span>
-        </div>
-        <div class="input-group mb-3">
-            <span class="input-group-text">Comment</span>
-            <textarea onchange="set_comment('subtask_comment_input_{{ id }}')" class="form-control" id="subtask_comment_input_{{ id }}"></textarea>
-        </div>
-        {% if code_snippet %}
-            {% for snippet in subtask.code_snippets%}
-                <div class="mb-3"> {{snippet.class_name}} - {{snippet.name}}</div>
-                {%  if snippet.found %}
-                    <div class="rounded border mb-3">
-                        <pre><code class="language-java">
-                            {{snippet.code}}
-                        </code></pre>
-                    </div>
-                {%  endif %}
-                {# assertion errors #}
-                {%  if subtask.testcase %}
-                    {% for case in subtask.testcases %}
-                        <div> {{ case.name }}</div>
-                        <div> {{ case.passed }}</div>
-                        <div> {{ case.assertion }} </div>
-                    {%  endfor %}
-                {% endif %}
+  {# FIXME class does not work #}
+  <div class="sub_content accordion-collapse collapse" id="{{ id }}">
+    <div class="mb-3"> {{ subtask.description }}</div>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Points</span>
+      <input class="form-control" onchange="set_points('subtask_point_input__{{ id }}')"
+             id="subtask_point_input__{{ id }}" type="number" step="0.5" value="{{ subtask.points }}" min="0"
+             max="{{ subtask.max_points }}">
+      <span class="input-group-text"> / {{ subtask.max_points }}</span>
+    </div>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Comment</span>
+      <textarea onchange="set_comment('subtask_comment_input__{{ id }}')" class="form-control"
+                id="subtask_comment_input__{{ id }}"></textarea>
+    </div>
+    {% if subtask.code_snippets %}
+      {% for snippet in subtask.code_snippets %}
+        <div class="mb-3"> {{ snippet.class_name }} - {{ snippet.name }}</div>
+        {% if snippet.found %}
+          <div class="rounded border mb-3">
+            <pre><code class="language-java">{{ snippet.code }}</code></pre>
+          </div>
+        {% endif %}
+        {# assertion errors #}
+        {% if subtask.testcases %}
+          {% for case in subtask.testcases %}
+            <div> {{ case.name }}</div>
+            <div> {{ case.passed }}</div>
+            <div> {{ case.assertion }} </div>
+          {% endfor %}
+        {% endif %}
             {% endfor %}
         {% endif %}
     </div>
