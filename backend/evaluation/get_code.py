@@ -84,6 +84,7 @@ def get_constructor_code(submission: Path, class_name: str) -> Tuple[str, CodeSt
 def get_full_class(submission: Path, class_name: str) -> Tuple[str, CodeStatus]:
     for code, code_status in iter_code_commits(submission, class_name):
         return code, code_status
+    return "", CodeStatus.NOT_FOUND
 
 
 def iter_code_commits(submission: Path, class_name: str):

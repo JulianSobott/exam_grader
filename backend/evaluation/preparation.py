@@ -14,7 +14,7 @@ from data.api import insert_submission
 from data.schemas import Submission, Student, Subtask, Task, CodeSnippet
 from get_code import get_method_code, get_attributes_code, get_class_header_code, get_constructor_code, CodeStatus, \
     get_full_class
-from gittools import git_copied_files, git_renamed_files
+from gittools import git_copied_files, git_renamed_files, git_filled_files
 from schema_classes.overview_schema import GradingStatus
 from schema_classes.tools_schema import FileError, FileErrorType, RenameFile
 from utils.p_types import error, new_error
@@ -61,9 +61,10 @@ def task_copy_raw_to_structured() -> error:
 
 def task_renamed_files():
     save_submissions()
+    git_renamed_files()
     err = fill_missing_files()
     if not err:
-        git_renamed_files()
+        git_filled_files()
 
 
 def _copy_file_utf8(src: Path, dst: Path, ):
@@ -181,6 +182,7 @@ def get_tasks_with_code(submission_name: str, exam: ExamConfig) -> List[Task]:
         description = None  # Use description from task_data, when added
         default_comment = ""
         full_code, status = get_full_class(structured_submissions.joinpath(submission_name), task_data.class_name)
+        full_code = CodeSnippet(task_data.class_name, task_data.class_name, status == CodeStatus.ORIGINAL, full_code)
         tasks.append(
             Task(task_name, task_max_points, subtasks, default_bookmarked, default_comment, description, full_code)
         )
