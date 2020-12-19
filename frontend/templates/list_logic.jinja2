@@ -13,7 +13,7 @@
 {%- endmacro %}
 
 {% macro create_slide(file, idx) -%}
-  <div class="slide-wrapper">
+  <div class="slide-wrapper passed_{{file.passed}} bookmarked_{{file.bookmarked}} status_{{file.status}}">
     <a href="/correction/{{ idx }}">
       <button class="btn btn-primary" style="height: 100px; width: 1500px; margin-top: 1%">
         <div class="row">
