@@ -33,14 +33,20 @@ function set_points(name_id) {
     let points = parseFloat(document.getElementById(name_id).value);
     // post points to server and show response
     postPoints({elements: elements}, points).then(res => {
+        console.log(res.status_code)
         if (res.status_code === 200) {
             console.log(name_id + ": " + points);
         }
         else {
             console.error(res.error.err_msg);
         }
-        console.log(res.status)
     })
+}
+
+function max_point(name_id) {
+    let max = document.getElementById(name_id).getAttribute("max");
+     document.getElementById(name_id).setAttribute("value", max);
+     set_points(name_id);
 }
 
 // when input changes: post comment to server
