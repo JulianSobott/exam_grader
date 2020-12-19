@@ -35,6 +35,8 @@ tasks:
         points: 1
         code_snippets:
           - code_type: CLASS_HEADER
+          - code_type: METHOD
+            name: nothing
   2:
     class_name: MyClass2
     canvas_question_id: 10
