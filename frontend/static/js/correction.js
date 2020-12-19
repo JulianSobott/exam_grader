@@ -3,20 +3,19 @@
 // toggle bookmark submission, task or subtask
     // id = origin of the button click
     // bookmark = current status of boolean bookmark
-function bookmarkClick(id, bookmark) {
+function bookmarkClick(id) {
     // convert bookmark String to JS-boolean
-    if (bookmark === "True") bookmark = true;
-    else bookmark = false;
+    const element = document.getElementById(`bookmark-${id}`);
+    const old_bookmark = element.getAttribute("is-bookmarked") === "true";
+    const new_bookmark = !old_bookmark;
     // split into id-sections (submission, task, subtask)
     let elements = id.split("--")
     console.log(elements);
     // update toggled bookmark at server and show response
-    postBookmark({elements: elements}, bookmark).then( res => {
+    postBookmark({elements: elements}, new_bookmark).then(res => {
         if (res.status_code === 200) {
-            // reload page to show the new icon
-            location.reload();
-        }
-        else {
+            element.setAttribute("is-bookmarked", `${new_bookmark}`)
+        } else {
             console.log(res.error.err_msg)
         }
     })
