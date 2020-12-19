@@ -131,8 +131,8 @@
         {% for snippet in subtask.code_snippets%}
             <div class="mb-3"> {{snippet.class_name}} - {{snippet.name}}</div>
             {%  if snippet.found %}
-                <div class="rounded border mb-3">
-                    <pre><code>
+              <div class="rounded border mb-3">
+                    <pre><code class="language-java">
                         {{snippet.code}}
                     </code></pre>
                 </div>

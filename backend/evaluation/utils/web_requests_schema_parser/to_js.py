@@ -27,7 +27,7 @@ async function $function_name($attributes) {
         method: "$method",
         $body
     }).then(res => {
-        return {data: res.json(), status: res.status};
+        return res.json();
     });
 }
     """
