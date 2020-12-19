@@ -181,6 +181,7 @@ def get_tasks_with_code(submission_name: str, exam: ExamConfig) -> List[Task]:
         description = None  # Use description from task_data, when added
         default_comment = ""
         full_code, status = get_full_class(structured_submissions.joinpath(submission_name), task_data.class_name)
+        full_code = CodeSnippet(task_data.class_name, task_data.class_name, status == CodeStatus.ORIGINAL, full_code)
         tasks.append(
             Task(task_name, task_max_points, subtasks, default_bookmarked, default_comment, description, full_code)
         )

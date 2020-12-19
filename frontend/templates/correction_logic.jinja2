@@ -78,12 +78,15 @@
                 {% endfor %}
             </div>
             <div style="width: 48%; padding: 0 1% 0 1%;">
-                {% if task.full_code %}
-                    <div class="rounded border">
-                        <pre><code class="language-java">{{ task.full_code }}</code></pre>
+                {% if not task.full_code.found %}
+                    <div class="alert alert-warning" role="alert">
+                        CODE NOT FOUND OR MODIFIED!
                     </div>
-            {% endif %}
-        </div>
+                {% endif %}
+                <div class="rounded border">
+                    <pre><code class="language-java">{{ task.full_code.code }}</code></pre>
+                </div>
+            </div>
         </div>
     </div>
 {%- endmacro %}
@@ -155,7 +158,15 @@
                     <div class="rounded border mb-3">
                         <pre><code class="language-java">{{ snippet.code }}</code></pre>
                     </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        CODE NOT FOUND OR MODIFIED!
+                    </div>
+                    <div class="rounded border mb-3">
+                        <pre><code class="language-java">{{ snippet.code }}</code></pre>
+                    </div>
                 {% endif %}
+
             {% endfor %}
         {% endif %}
     </div>
@@ -163,5 +174,6 @@
 
 {%- macro bookmark_element(id, initial) -%}
     {% set is_bookmarked = "true" if initial else "false" %}
-    <div id="bookmark-{{ id }}" onclick="bookmarkClick('{{ id }}')" class="bookmark" is-bookmarked={{ is_bookmarked }}></div>
+    <div id="bookmark-{{ id }}" onclick="bookmarkClick('{{ id }}')" class="bookmark"
+         is-bookmarked={{ is_bookmarked }}></div>
 {%- endmacro -%}

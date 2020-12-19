@@ -11,23 +11,25 @@ typedef object SubmissionData
         points: float   # could be calculated by adding all subtask points
         max_points: float
         bookmarked: bool
-        full_code: str
+        full_code: $CodeSnippet
         sub_tasks[]: object SubTaskData
             name: str
             description: str
             points: float
             max_points: float
             bookmarked: bool
-            code_snippets[]: object CodeSnippet
-                name: str
-                class_name: str
-                found: bool
-                ?code: str  # Possible, that the code snippet could not be found in the class
+            code_snippets[]: $CodeSnippet
             testcases[]: object Testcase
                 name: str
                 passed: bool
                 ?assertion: str
 
+
+typedef object CodeSnippet
+    name: str
+    class_name: str
+    found: bool
+    ?code: str  # Possible, that the code snippet could not be found in the class
 
 typedef object Identifier
     elements[]: str # element name last, parents first, ordered
