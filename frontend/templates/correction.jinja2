@@ -11,14 +11,21 @@
             <div class="navbar-nav">
                 <a class="nav-item nav-link active" href="/correction/{{ current_num - 1 }}">Previous<span class="sr-only">(current)</span></a>
                 <a class="nav-item nav-link" href="/list">List</a>
-                <a class="nav-item nav-link" id="finish_link" href="#">Finish</a>
-                <a class="nav-item nav-link" id="unfinish_link" href="#">Unfinish</a>
+                <a class="nav-item nav-link" onclick="bookmarkClick('{{ report.name }}')" href="#">Bookmark</a>
+                <a class="nav-item nav-link" onclick="finish('{{ report.name }}')" href="#">Finish</a>
+                <a class="nav-item nav-link" onclick="unfinish('{{ report.name }}')" href="#">Unfinish</a>
                 <a class="nav-item nav-link disabled" href="/correction/{{ current_num + 1 }}">Next</a>
             </div>
         </div>
     </nav>
 
     <div class="content">
+        {# mark report as ACTIVE #}
+        <script>
+            window.addEventListener('DOMContentLoaded', (event) => {
+                unfinish('{{ report.name }}');
+            });
+        </script>
         {{ create_report(report) }}
     </div>
 {% endblock %}
