@@ -103,7 +103,7 @@ def submission_data(submission_name: str) -> Tuple[Optional[SubmissionData], err
                 SubTaskData(st.name, st.description, st.points, st.max_points, st.bookmarked, st.code_snippets,
                             st.testcases))
         tasks.append(
-            TaskData(t.name, task_points, task_max_points, t.bookmarked, subtasks))
+            TaskData(t.name, task_points, task_max_points, t.bookmarked, t.full_code, subtasks))
     return SubmissionData(sub.student.name, sub.student.student_number, num_correct, num_subtasks,
                           points_sub, max_points_sub, tasks, sub.step_failed), None
 

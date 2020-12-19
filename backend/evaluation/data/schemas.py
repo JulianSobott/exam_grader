@@ -43,6 +43,7 @@ class Task:
     bookmarked: bool
     comment: str = ""
     description: Optional[str] = None
+    full_code: str = ""
 
 
 @dataclass_json

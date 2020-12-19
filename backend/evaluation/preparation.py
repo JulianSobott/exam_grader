@@ -172,14 +172,17 @@ def get_tasks_with_code(submission_name: str, exam: ExamConfig) -> List[Task]:
             task_max_points += subtask_data.points
             default_points = 0
             default_bookmarked = False
+            default_comment = ""
             subtasks.append(
                 Subtask(subtask_name, subtask_data.description, subtask_data.points, default_points,
-                        default_bookmarked, code_snippets)
+                        default_bookmarked, default_comment, code_snippets)
             )
         default_bookmarked = False
         description = None  # Use description from task_data, when added
+        default_comment = ""
+        full_code, status = get_full_class(structured_submissions.joinpath(submission_name), task_data.class_name)
         tasks.append(
-            Task(task_name, task_max_points, subtasks, default_bookmarked, description)
+            Task(task_name, task_max_points, subtasks, default_bookmarked, default_comment, description, full_code)
         )
     return tasks
 
