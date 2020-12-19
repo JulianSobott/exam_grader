@@ -26,7 +26,14 @@
     </nav>
 
     <div class="content">
-
+        <div>
+            <input type="checkbox" id="cb_bookmarked"/>
+            <input type="checkbox" id="cb_NOT_STARTED"/>, ,
+            <input type="checkbox" id="cb_ACTIVE"/>
+            <input type="checkbox" id="cb_DONE"/>
+            <input type="checkbox" id="cb_passed"/>
+            <input type="checkbox" id="cb_not_passed"/>
+        </div>
         {{ create_list(reports) }}
     </div>
 {% endblock %}
