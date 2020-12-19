@@ -1,33 +1,10 @@
-.buttonbar {
-  position: fixed;
-  top: 5px;
-  /*display: flex;*/
-  margin: 5px;
-  flex-direction: row;
-  height: 50px;
-  width: 100%;
-  background: #193741;
-}
-
 .content {
   top: 60px;
   margin-left: 5%;
-  position: fixed;
+  position: absolute;
 }
 
-button {
-  margin: 5px;
-  height: 40px;
-  width: 80px;
-}
-
-.button_link {
-  display: inline-block;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  color: #ffffff;
-  background-color: #7aa8b7;
-  border-radius: 6px;
-  outline: none;
+.sub_content {
+  margin-top: 5%;
+  margin-left: 5%;
 }
