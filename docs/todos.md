@@ -1,9 +1,6 @@
 - correction
-    - show full code (sebastian)
-    - set max points button (sebastian)
-    - expand full button (sebastian)
-    - update points async (no reload)
-    - color if full points
-- list
-    - filters
-    - submit to canvas button
+  - color if full points
+
+- rename Umlaute
+- static tests
+- auto points
