@@ -1,19 +1,28 @@
 {% macro create_list(overview) -%}
-    {{ create_list_header(overview) }}
-    {% for file in overview.submissions %}
-        {{ create_slide(file, loop.index0) }}
-    {% endfor %}
+  {{ create_list_header(overview) }}
+  {% for file in overview.submissions %}
+    {{ create_slide(file, loop.index0) }}
+  {% endfor %}
 {%- endmacro %}
 
 {% macro create_list_header(file) -%}
   <div class="header-wrapper">
     <h1> {{ file.exam_name|replace("_", " ") }} </h1>
-    <div> {{ file.num_passed }} / {{ file.submissions|length }} passed the test </div>
+    <div class="row">
+      {{ filter("bookmarked", "bookmarked_True") }}
+      {{ filter("not-bookmarked", "bookmarked_False") }}
+      {{ filter("not-started", "status_NOT_STARTED") }}
+      {{ filter("active", "status_ACTIVE") }}
+      {{ filter("done", "status_DONE") }}
+      {{ filter("passed", "passed_True") }}
+      {{ filter("not-passed", "passed_False") }}
+    </div>
+    <div> {{ file.num_passed }} / {{ file.submissions|length }} passed the test</div>
   </div>
 {%- endmacro %}
 
 {% macro create_slide(file, idx) -%}
-  <div class="slide-wrapper passed_{{file.passed}} bookmarked_{{file.bookmarked}} status_{{file.status}}">
+  <div class="slide-wrapper passed_{{ file.passed }} bookmarked_{{ file.bookmarked }} status_{{ file.status }}">
     <a href="/correction/{{ idx }}">
       <button class="btn btn-primary" style="height: 100px; width: 1500px; margin-top: 1%">
         <div class="row">
@@ -43,3 +52,13 @@
     </a>
   </div>
 {%- endmacro %}
+
+
+{%- macro filter(name, add) -%}
+  <div class="filter-checkbox">
+    <label for="cb_{{ name }}">
+      <input id="cb_{{ name }}" type="checkbox" onclick="filter_click('cb_{{ name }}', '{{ add }}')" checked>
+      {{ name }}
+    </label>
+  </div>
+{%- endmacro -%}

@@ -1,28 +1,33 @@
+let show_classes = new Set([
+    "bookmarked_True",
+    "bookmarked_False",
+    "status_NOT_STARTED",
+    "status_ACTIVE",
+    "status_DONE",
+    "passed_True",
+    "passed_False"
+])
 
-function filter_bookmark_click() {
-    let checkBox = document.getElementById("cb_bookmarked");
-  let bookmarked_elements = document.getElementsByClassName("bookmarked_True");
-  let not_bookmarked_elements = document.getElementsByClassName("bookmarked_False")
-  if (checkBox.checked === true){
-    for (const notBookmarkedElement of not_bookmarked_elements) {
-        notBookmarkedElement.style.display = "none";
+
+function filter_click(id, add) {
+    let checkBox = document.getElementById(id);
+    if (checkBox.checked === true) {
+        show_classes.add(add);
+    } else {
+        show_classes.delete(add);
     }
-      for (const element of bookmarked_elements) {
-          element.style.display = "block";
-      }
-  } else {
-     for (const notBookmarkedElement of not_bookmarked_elements) {
-        notBookmarkedElement.style.display = "block";
-    }
-      for (const element of bookmarked_elements) {
-          element.style.display = "block";
-      }
-  }
+    applyFilter();
 }
 
-function init() {
-  let checkBox = document.getElementById("cb_bookmarked");
-  checkBox.addEventListener("click", filter_bookmark_click);
+function applyFilter() {
+    let slides = document.getElementsByClassName("slide-wrapper");
+    for (const slide of slides) {
+        slide.style.display = "none";
+    }
+    for (const showClass of show_classes) {
+        const elements = document.getElementsByClassName(showClass);
+        for (const element of elements) {
+            element.style.display = "block";
+        }
+    }
 }
-
-window.addEventListener("DOMContentLoaded", init);

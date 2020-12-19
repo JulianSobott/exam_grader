@@ -21,3 +21,8 @@
 .bookmark[is-bookmarked=false] {
   background: url("/static/assets/icons/bookmarked-not.svg");
 }
+
+
+.filter-checkbox {
+  margin-left: 30px;
+}
