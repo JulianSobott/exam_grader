@@ -31,3 +31,15 @@ function applyFilter() {
         }
     }
 }
+
+// submit all reports to the canvas api
+function submit() {
+    postSubmit_To_Canvas().then(res => {
+        if (res.status_code === 200) {
+            console.log("submitted successfully")
+        }
+        else if (res.status_code === 500) {
+            console.log(res.err_msg)
+        }
+    })
+}
