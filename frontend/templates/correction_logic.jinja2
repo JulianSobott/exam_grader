@@ -10,10 +10,16 @@
 {#  general information about the students submission #}
 {% macro create_header(report) -%}
     <div class="header_info">
-        {% set name = report.name|replace("_", " ")|title() %}
-        <h1>{{ name }}, {{ report.students_number }}</h1>
-        {% set id = report.name + "-" + report.students_number %}
-        {{ bookmark_element(id, report.bookmarked) }}
+        <div class="row">
+            <div class="col-2">
+                {% set name = report.name|replace("_", " ")|title() %}
+                <h1>{{ name }}, {{ report.students_number }}</h1>
+            </div>
+            <div class="col-auto mt-3">
+                {% set id = report.name + "-" + report.students_number %}
+                {{ bookmark_element(id, report.bookmarked) }}
+            </div>
+        </div>
         <div class="sub_content">
             <dl class="row">
                 <dt class="col-sm-3">Subtasks:</dt>
