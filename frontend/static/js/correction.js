@@ -35,6 +35,7 @@ function set_points(name_id) {
         console.log(res.status_code)
         if (res.status_code === 200) {
             console.log(name_id + ": " + points);
+            updated_points();
         }
         else {
             console.error(res.error.err_msg);
@@ -90,13 +91,30 @@ function finish(id) {
     // also used to set the status from NOT_STARED to ACTIVE
 function unfinish(id) {
     // post status to server and show response
-     postStatus({elements: [id]}, "ACTIVE").then(res => {
+    postStatus({elements: [id]}, "ACTIVE").then(res => {
         console.log(res.status_code)
-         if (res.status_code === 200) {
+        if (res.status_code === 200) {
             console.log("status: ACTIVE")
-        }
-        else {
+        } else {
             console.error(res.error.err_msg);
         }
     })
+}
+
+function updated_points() {
+    const sum_elements = document.getElementsByClassName("points_sum");
+    for (const sumElement of sum_elements) {
+        const parentTargetId = sumElement.getAttribute("target");
+        const parentTarget = document.getElementById(parentTargetId);
+        const point_elements = document.evaluate(
+            './/input',
+            parentTarget, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+        let element = point_elements.iterateNext();
+        let points = 0;
+        while (element) {
+            points += +element.value;
+            element = point_elements.iterateNext();
+        }
+        sumElement.innerHTML = "" + points;
+    }
 }

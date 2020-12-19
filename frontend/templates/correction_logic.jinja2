@@ -18,7 +18,9 @@
                 <dd class="col-sm-9">{{ report.num_correct_subtasks }} / {{ report.num_subtasks }}</dd>
 
                 <dt class="col-sm-3">Points:</dt>
-                <dd class="col-sm-9">{{ report.points }} / {{ report.max_points }}</dd>
+                <dd class="col-sm-9">
+                    <span class="points_sum" target="tasks-container">{{ report.points }}</span>
+                    / {{ report.max_points }}</dd>
 
                 {% if report.step_failed %}
                     <dt class="col-sm-3">Step failed:</dt>
@@ -32,7 +34,7 @@
 <!-- creating report body from tasks -->
 {#  containes tasks & subtask with snippets, points, comments etc. #}
 {% macro create_body(report) -%}
-    <div class="accordion">
+    <div class="accordion" id="tasks-container">
         {% for task in report.tasks %}
             {# create a unique id for every task #}
             {% set id_report = report.name + "-" + report.students_number %}
@@ -65,7 +67,9 @@
             <div class="col">
                 <dl class="row">
                     <dt class="col-1">Points:</dt>
-                    <dd class="col">{{ task.points }} / {{ task.max_points }}</dd>
+                    <dd class="col">
+                        <span class="points_sum" target="{{ id }}">{{ task.points }}</span> / {{ task.max_points }}
+                    </dd>
                 </dl>
                 {% for subtask in task.sub_tasks %}
                     {# create a unique id for every subtask #}
@@ -73,8 +77,8 @@
                     {{ create_subtask(subtask, id_sub) }}
                 {% endfor %}
             </div>
-        <div class="col">
-            {% if task.full_code %}
+            <div class="col">
+                {% if task.full_code %}
                     <div class="rounded border">
                         <pre><code class="language-java">{{ task.full_code }}</code></pre>
                     </div>
