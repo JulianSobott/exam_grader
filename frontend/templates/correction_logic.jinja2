@@ -64,7 +64,7 @@
 
     <div class="sub_content accordion-collapse collapse task-body" id="{{ id }}">
         <div class="row">
-            <div class="col">
+            <div style="width: 50%;">
                 <dl class="row">
                     <dt class="col-1">Points:</dt>
                     <dd class="col">
@@ -77,7 +77,7 @@
                     {{ create_subtask(subtask, id_sub) }}
                 {% endfor %}
             </div>
-            <div class="col">
+            <div style="width: 48%; padding: 0 1% 0 1%;">
                 {% if task.full_code %}
                     <div class="rounded border">
                         <pre><code class="language-java">{{ task.full_code }}</code></pre>
@@ -85,7 +85,6 @@
             {% endif %}
         </div>
         </div>
-
     </div>
 {%- endmacro %}
 
