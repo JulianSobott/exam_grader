@@ -13,6 +13,7 @@ from config.exam_config import get_exam_config_else_raise
 from config.local_config import get_local_config
 from data.api import update_test_results, set_testcases
 from data.schemas import Testcases
+from get_code import get_full_class, CodeStatus
 from schema_classes.grading_schema import StepFailed, Testcase
 from static_code_testing.attributes import test_attribute
 from static_code_testing.class_declaration import test_class
@@ -87,7 +88,9 @@ def run_tests(submission_name: str) -> subprocess.CompletedProcess:
     return res
 
 
-def _testcase_from_failures(name: str, failures: list) -> Testcase:
+def _testcase_from_failures(name: str, failures: list, code_status: CodeStatus) -> Testcase:
+    if code_status != CodeStatus.ORIGINAL:
+        return Testcase(name, False, "No Code exists")
     if failures:
         return Testcase(name, False, ", ".join(map(str, failures)))
     return Testcase(name, True)
@@ -98,8 +101,7 @@ def run_static_tests(submission_name: str) -> Dict[str, Dict[str, List[Testcase]
     results = {}
     for task_name, task in cfg.tasks.items():
         results[task_name] = {}
-        with open(structured_submissions.joinpath(submission_name).joinpath(task.class_name + ".java")) as f:
-            code = f.read()
+        code, status = get_full_class(structured_submissions.joinpath(submission_name), task.class_name)
         for subtask_name, subtask in task.subtasks.items():
             testcases = []
             tests = subtask.static_tests
@@ -107,13 +109,13 @@ def run_static_tests(submission_name: str) -> Dict[str, Dict[str, List[Testcase]
                 continue
             if tests.class_header:
                 f = test_class(tests.class_header, code)
-                testcases.append(_testcase_from_failures(f"Class {tests.class_header.name}", f))
+                testcases.append(_testcase_from_failures(f"Class {tests.class_header.name}", f, status))
             for method in tests.methods:
                 f = test_method(method, code)
-                testcases.append(_testcase_from_failures(f"method: {method.name}", f))
+                testcases.append(_testcase_from_failures(f"method: {method.name}", f, status))
             for attribute in tests.attributes:
                 f = test_attribute(attribute, code)
-                testcases.append(_testcase_from_failures(f"attribute: {attribute.name}", f))
+                testcases.append(_testcase_from_failures(f"attribute: {attribute.name}", f, status))
             results[task_name][subtask_name] = testcases
     return results
 
