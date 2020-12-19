@@ -44,8 +44,8 @@ function set_points(name_id) {
 
 function max_point(name_id) {
     let max = document.getElementById(name_id).getAttribute("max");
-     document.getElementById(name_id).setAttribute("value", max);
-     set_points(name_id);
+     document.getElementById(name_id).value = max;
+    set_points(name_id);
 }
 
 // when input changes: post comment to server
