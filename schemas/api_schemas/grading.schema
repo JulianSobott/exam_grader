@@ -11,6 +11,7 @@ typedef object SubmissionData
         points: float   # could be calculated by adding all subtask points
         max_points: float
         bookmarked: bool
+        full_code: str
         sub_tasks[]: object SubTaskData
             name: str
             description: str
