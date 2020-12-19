@@ -8,3 +8,16 @@
   margin-top: 5%;
   margin-left: 5%;
 }
+
+.bookmark {
+  width: 16px;
+  height: 16px;
+}
+
+.bookmark[is-bookmarked=true] {
+  background: url("/static/assets/icons/bookmarked.svg");
+}
+
+.bookmark[is-bookmarked=false] {
+  background: url("/static/assets/icons/bookmarked-not.svg");
+}

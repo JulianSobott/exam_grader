@@ -48,38 +48,30 @@
 {% macro create_task(task, id) -%}
     <div class="row" style="margin-top: 5%">
         <div class="col-sm">
-             <h2> {{ task.name }}</h2>
+          <h2> {{ task.name }}</h2>
         </div>
-        <div class="col-sm-2">
-            <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
-                 </svg>
-                {# enroll #}
-            </button>
-        </div>
-        <div class="col-sm mt-2" onclick="bookmarkClick('{{ id }}', '{{ task.bookmarked }}')">
-            {% if task.bookmarked %}
-                {# <mark>Bookmark!</mark> #}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check-fill" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M4 0a2 2 0 0 0-2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4zm6.854 5.854a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
-                </svg>
-            {% else %}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-check" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
-                    <path fill-rule="evenodd" d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                </svg>
-            {% endif %}
-        </div>
+      <div class="col-sm-2">
+        <button class="collapsed btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#{{ id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+               class="bi bi-aspect-ratio-fill" viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+                  d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zm1 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0V5h2.5a.5.5 0 0 0 0-1h-3zm11 8a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-1 0V11h-2.5a.5.5 0 0 0 0 1h3z"/>
+          </svg>
+          {# enroll #}
+        </button>
+      </div>
+      <div class="col-sm mt-2">
+        {{ bookmark_element(id, task.bookmarked) }}
+      </div>
     </div>
 
-    {#  FIXME class does not work #}
-     <div class="sub_content accordion-collapse collapse" id="{{ id }}">
-            <dl class="row">
-                <dt class="col-sm-3">Points: </dt>
-                <dd class="col-sm-9">{{ task.points }} / {{ task.max_points }}</dd>
-            </dl>
-         {% for subtask in task.sub_tasks %}
+  {#  FIXME class does not work #}
+  <div class="sub_content accordion-collapse collapse" id="{{ id }}">
+    <dl class="row">
+      <dt class="col-sm-3">Points:</dt>
+      <dd class="col-sm-9">{{ task.points }} / {{ task.max_points }}</dd>
+    </dl>
+    {% for subtask in task.sub_tasks %}
              {# create a unique id for every subtask #}
              {% set id_sub = id + "--" + subtask.name|lower()|replace(" ","") %}
              {{ create_subtask(subtask, id_sub) }}
@@ -104,13 +96,10 @@
               {# enroll #}
             </button>
           </div>
-          <div class="col-sm mt-2" onclick="bookmarkClick('{{ id }}', '{{ subtask.bookmarked }}')">
-            {% if subtask.bookmarked %}
-              <img src="{{ url_for("static", filename="assets/icons/bookmarked.svg") }}" alt="bookmarked">
-              {# <mark>Bookmark!</mark> #}
-            {% else %}
-              <img src="{{ url_for("static", filename="assets/icons/bookmarked-not.svg") }}" alt="bookmarked">
-            {% endif %}
+          <div class="col-sm mt-2">
+            <div class="col-sm mt-2">
+              {{ bookmark_element(id, subtask.bookmarked) }}
+            </div>
           </div>
         </div>
 
@@ -161,6 +150,12 @@
         {% endif %}
         {# assertion errors #}
       {% endfor %}
-        {% endif %}
-    </div>
+    {% endif %}
+  </div>
 {%- endmacro %}
+
+{%- macro bookmark_element(id, initial) -%}
+  {% set is_bookmarked = "true" if initial else "false" %}
+  <div id="bookmark-{{ id }}" onclick="bookmarkClick('{{ id }}')" class="bookmark" is-bookmarked={{ is_bookmarked }}>
+  </div>
+{%- endmacro -%}

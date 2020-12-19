@@ -1,6 +1,5 @@
 - correction
     - show full code (sebastian)
-    - async bookmarks (no reload) (julian)
     - set max points button (sebastian)
     - expand full button (sebastian)
     - update points async (no reload)
