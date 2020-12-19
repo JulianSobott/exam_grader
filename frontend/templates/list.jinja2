@@ -27,12 +27,12 @@
 
     <div class="content">
         <div>
-            <input type="checkbox" id="cb_bookmarked"/>
-            <input type="checkbox" id="cb_NOT_STARTED"/>, ,
-            <input type="checkbox" id="cb_ACTIVE"/>
-            <input type="checkbox" id="cb_DONE"/>
-            <input type="checkbox" id="cb_passed"/>
-            <input type="checkbox" id="cb_not_passed"/>
+            <input type="checkbox" id="cb_bookmarked"/> Bookmarked<br>
+            <input type="checkbox" id="cb_NOT_STARTED"/> Nicht gestartet<br>
+            <input type="checkbox" id="cb_ACTIVE"/> Aktive<br>
+            <input type="checkbox" id="cb_DONE"/> Fertig<br>
+            <input type="checkbox" id="cb_passed"/> Bestanden<br>
+            <input type="checkbox" id="cb_not_passed"/> Nicht bestanden<br>
         </div>
         {{ create_list(reports) }}
     </div>
