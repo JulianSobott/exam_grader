@@ -12,6 +12,8 @@
     <div class="header_info">
         {% set name = report.name|replace("_", " ")|title() %}
         <h1>{{ name }}, {{ report.students_number }}</h1>
+        {% set id = report.name + "-" + report.students_number %}
+        {{ bookmark_element(id, report.bookmarked) }}
         <div class="sub_content">
             <dl class="row">
                 <dt class="col-sm-3">Subtasks:</dt>

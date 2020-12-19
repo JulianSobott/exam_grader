@@ -27,12 +27,13 @@ routes(
                 post("/points", api.grading.PointsRequest),
                 post("/comment", api.grading.CommentRequest),
                 post("/bookmark", api.grading.BookmarkRequest),
-                post("/status", api.grading.StatusRequest)
+                post("/status", api.grading.StatusRequest),
+                post("/submit_to_canvas", api.grading.SubmitToCanvasRequest)
             ),
             group(
                 "/statistics",
                 get("", api.todo)
-            )
+            ),
         )
     )
 )
