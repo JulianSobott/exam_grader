@@ -1,12 +1,11 @@
 .content {
   top: 60px;
   margin-left: 5%;
-  position: absolute;
+  margin-right: 1%;
 }
 
 .sub_content {
-  margin-top: 5%;
-  margin-left: 5%;
+  margin-left: 2%;
 }
 
 .bookmark {
