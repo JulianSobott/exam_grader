@@ -13,6 +13,11 @@
   height: 16px;
 }
 
+.submission_bar {
+  margin-top: 10%;
+  width: 20%;
+}
+
 .bookmark[is-bookmarked=true] {
   background: url("/static/assets/icons/bookmarked.svg");
 }
