@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -38,6 +39,36 @@ def update_scores_comments(submission_id: str, question_gradings: List[QuestionG
         return new_error(res.text)
 
 
+def get_student_ids():
+    mapping = {}
+    next_url = None
+    x = re.compile(r"<([^>]+)>")
+    local_cfg = get_local_config()
+
+    while True:
+        if next_url is None:
+            res = api_call(f"/submissions?per_page=10", None, requests.get)
+        else:
+            res = requests.get(next_url, headers={"Authorization": f"Bearer {local_cfg.canvas_token}"})
+
+        d = res.json()
+        for sub in d["quiz_submissions"]:
+            mapping[str(sub["user_id"])] = str(sub["id"])
+
+        # next page
+        links_raw = res.headers["link"]
+        links = links_raw.split(",")
+
+        current = x.findall(links[0])
+        next_ = x.findall(links[1])
+        last = x.findall(links[-1])
+        if current[0] == last[0]:
+            break
+        else:
+            next_url = next_[0]
+    return mapping
+
+
 def api_call(uri: str, data: dict, method) -> requests.Response:
     local_cfg = get_local_config()
     exam_cfg = get_exam_config_else_raise()
@@ -46,4 +77,5 @@ def api_call(uri: str, data: dict, method) -> requests.Response:
 
 
 if __name__ == '__main__':
-    update_scores_comments("48362", [QuestionGrading("105749", 1, "New update")])
+    # get_student_ids()
+    print(update_scores_comments("55263", [QuestionGrading("105159", 2, "New update (testing the api)")]))

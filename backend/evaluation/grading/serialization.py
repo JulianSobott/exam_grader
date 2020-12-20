@@ -14,13 +14,25 @@ def create_exel_table(path: Path = None):
     if path is None:
         path = Path(f"{exam_name}_gradings.xlsx")
     grading = overview_data()
-    data = {"Name": [], "Punkte": [], "Canvas ID": []}
+    points = {}
+    data = {"Name": [], "Canvas ID": []}
     for submission in grading.submissions:
+        if not points:
+            points = {e.exam_name: [] for e in submission.exam_points}
+            points["sum"] = []
         data["Name"].append(submission.submission_name)
-        points = [e for e in submission.exam_points if e.exam_name == exam_name][0]
-        data["Punkte"].append(points)
+        points_sum = 0
+        for e in submission.exam_points:
+            points_sum += e.points
+            points[e.exam_name].append(e.points)
+        points["sum"].append(points_sum)
         data["Canvas ID"].append(submission.submission_id.replace(f"{submission.submission_name}-", ""))
 
+    data = {**data, **points}
     df = pd.DataFrame(data)
     df.to_excel(path, index=False)
     logger.info(f"created exel file at: {path.absolute()}")
+
+
+if __name__ == '__main__':
+    create_exel_table()

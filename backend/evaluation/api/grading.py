@@ -1,6 +1,6 @@
 from typing import List
 
-from canvas.api import QuestionGrading, update_scores_comments
+from canvas.api import QuestionGrading, update_scores_comments, get_student_ids
 from config.exam_config import get_exam_config_else_raise
 from data.api import submission_data, set_points, set_comment, set_bookmark, set_status, overview_data
 from grading.create_report import create_comment
@@ -58,9 +58,10 @@ class SubmitToCanvasRequest(SubmitToCanvasRequestBase):
 
     def handle_post(self, data: "SubmitToCanvasPOSTRequest") -> "SubmitToCanvasPOSTResponse":
         overview = overview_data()
+        id_mapping = get_student_ids()
         errors = []
         for submission in overview.submissions:
-            sub_data, err = submission_data(submission.submission_name)
+            sub_data, err = submission_data(submission.submission_id)
             if err:
                 error = f"[{submission.submission_name}] to canvas error: {err}"
                 logger.error(error)
@@ -73,7 +74,7 @@ class SubmitToCanvasRequest(SubmitToCanvasRequestBase):
                     grading = QuestionGrading(canvas_question_id, task.points, comment)
                     gradings.append(grading)
                 logger.info(f"[{submission.submission_name}] submitting to canvas...")
-                err = update_scores_comments(submission.submission_name, gradings)
+                err = update_scores_comments(id_mapping[sub_data.students_number], gradings)
                 if err:
                     error = f"[{submission.submission_name}] submitting failed: {err}"
                     logger.error(error)
