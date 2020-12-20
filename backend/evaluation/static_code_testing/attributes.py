@@ -22,7 +22,7 @@ class AttributeTest:
 
 
 def test_attribute(attribute: AttributeTest, code: str) -> List[AttributeFailure]:
-    regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*((?P<static>static)\s)?\s*((?P<type>\w+)\s)\s*"
+    regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*((?P<static>static)\s)?\s*((?P<type>\w+(\[])?\s)\s*"
                        + attribute.name
                        + r"\s*(=\s*(?P<default_value>[^;]*))?;")
     match = regex.search(code)

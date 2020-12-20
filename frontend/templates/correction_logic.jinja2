@@ -147,19 +147,19 @@
                 <tbody>
                 {% for case in subtask.testcases %}
                     <tr>
-                            <td class="col">{{ case.name }}</td>
-                            {% if case.passed %}
-                                <td class="col table-success">PASSED</td>
-                            {% else %}
-                                <td class="col table-danger">FAILED</td>
+                        <td class="col">{{ case.name }}</td>
+                        {% if case.passed %}
+                            <td class="col table-success">PASSED</td>
+                        {% else %}
+                            <td class="col table-danger">FAILED</td>
+                        {% endif %}
+                        <td class="col">
+                            {% if not case.passed %}
+                                <pre>{{ case.assertion }}</pre>
                             {% endif %}
-                            <td class="col">
-                                {% if not case.passed %}
-                                    {{ case.assertion }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         {% endif %}
