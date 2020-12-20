@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-from config.exam_config import get_exam_config
+from config.exam_config import get_exam_config, get_exam_config_else_raise
 from data.internal import exams, submissions
 from data.schemas import Exam, Submission, Student, Task, Subtask, Testcases
 from schema_classes.grading_schema import SubmissionData, Identifier, TaskData, SubTaskData, StepFailed, \
@@ -144,6 +144,10 @@ def set_testcases(submission_name, task_name: str, subtask_name: str, testcases:
                              {"$set": {"tasks.$[i].subtasks.$[j].testcases": testcases.to_dict()["testcases"]}},
                              array_filters=[{"i.name": task_name}, {"j.name": subtask_name}]
                              )
+    if all(t.passed for t in testcases.testcases):
+        cfg = get_exam_config_else_raise()
+        max_points = cfg.tasks[task_name].subtasks[subtask_name].points
+        set_points(Identifier([submission_name, task_name, subtask_name]), max_points)
 
 
 SUBMISSION_IDX = 0

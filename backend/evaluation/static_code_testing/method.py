@@ -42,9 +42,10 @@ def test_method(method: MethodTest, code: str) -> List[MethodFailure]:
     if not method.is_constructor and method.return_type != match.group("return_type"):
         failures.append(MethodFailure.RETURN_TYPE)
     # parameters
-    actual_parameter_types = []
-    for p in match.group("parameters").split(","):
-        actual_parameter_types.append(p.strip(" ").split(" ")[0])
-    if not match_lists(actual_parameter_types, method.parameters, method.parameters_ordered):
-        failures.append(MethodFailure.PARAMETERS)
+    if match.group("parameters").strip():
+        actual_parameter_types = []
+        for p in match.group("parameters").split(","):
+            actual_parameter_types.append(p.strip(" ").split(" ")[0])
+        if not match_lists(actual_parameter_types, method.parameters, method.parameters_ordered):
+            failures.append(MethodFailure.PARAMETERS)
     return failures

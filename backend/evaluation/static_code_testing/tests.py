@@ -12,6 +12,11 @@ class TestMethod(unittest.TestCase):
                                "public void getName(String args, Car c)")
         self.assertEqual([], failures)
 
+    def test_valid2(self):
+        failures = test_method(MethodTest("getName", [AccessModifier.PUBLIC, AccessModifier.DEFAULT], "boolean"),
+                               "void getName()")
+        self.assertEqual([], failures)
+
     def test_valid_params_unordered(self):
         failures = test_method(MethodTest("getName", [AccessModifier.PUBLIC], "void", ["String", "Car"], False),
                                "public void getName( Car c, String args)")
