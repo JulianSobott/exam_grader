@@ -118,3 +118,32 @@ function updated_points() {
         sumElement.innerHTML = "" + points;
     }
 }
+
+function initShortcuts(id) {
+    document.addEventListener("keydown", ev => {
+        if (ev.ctrlKey && ev.key === "ArrowRight") {
+            // next
+            const curr = +window.location.href.split("/").slice(-1)
+            window.location.href = `/correction/${curr + 1}`;
+        }
+        if (ev.ctrlKey && ev.key === "ArrowLeft") {
+            // prev
+            const curr = +window.location.href.split("/").slice(-1)
+            window.location.href = `/correction/${curr - 1}`;
+        }
+        if (ev.ctrlKey && ev.shiftKey && ev.key === "F") {
+            finish(id);
+        }
+        if (ev.ctrlKey && ev.shiftKey && ev.key === "A") {
+            unfinish(id);
+        }
+        if (ev.ctrlKey && ev.shiftKey && ev.key === "B") {
+            bookmarkClick(id);
+        }
+        if (ev.ctrlKey && ev.key === "l") {
+            window.location.href = `/list`;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+    })
+}
