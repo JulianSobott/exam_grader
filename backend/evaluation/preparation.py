@@ -5,7 +5,7 @@ import zipfile
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-import chardet
+from charset_normalizer import CharsetNormalizerMatches as CnM
 
 from common import iter_submissions_folders, empty_java_classes, structured_submissions, raw_submissions
 from config.exam_config import get_required_files, get_exam_config_else_raise, ExamConfig, \
@@ -71,11 +71,15 @@ def _copy_file_utf8(src: Path, dst: Path, ):
     """
     copy the files. But ensure they are utf-8 encoded
     """
+    renames = {"ü": "ue", "ä": "ae", "ö": "oe", "ß": "ss"}
     with open(src, "rb") as f_src:
-        with open(dst, "wb") as f_dst:
-            content = f_src.read()
-            encoding = chardet.detect(content)["encoding"]
-            f_dst.write(content.decode(encoding).encode("utf-8"))
+        match = CnM.from_fp(f_src)
+    with open(dst, "w", encoding="utf-8") as f_dst:
+        content = str(match.best().first())
+        for old, new in renames.items():
+            content = content.replace(old, new)
+            content = content.replace(old.title(), new.title())
+        f_dst.write(content)
 
 
 def cli_output_file_failures():
@@ -234,4 +238,4 @@ def task_extract_zip(path: Path) -> Tuple[Optional[List[FileError]], error]:
 
 
 if __name__ == '__main__':
-    task_renamed_files()
+    task_copy_raw_to_structured()

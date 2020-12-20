@@ -2,7 +2,7 @@ public class MyClass2 extends MyClass1 {
 
     private int[] numbers = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-    public int[] getNumbers() {
+    public int[] getNÜmbers() {
         return this.numbers;
     }
 
