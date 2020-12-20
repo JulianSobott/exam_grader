@@ -78,3 +78,6 @@ gradle-app.setting
 
 # -----> Project
 local.config.yaml
+**schema_classes/
+/sandbox/submissions/results/*
+/sandbox/submissions/structured/*

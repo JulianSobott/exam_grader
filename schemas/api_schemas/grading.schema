@@ -1,0 +1,109 @@
+typedef object SubmissionData
+    name: str
+    students_number: str
+    num_correct_subtasks: int
+    num_subtasks: int
+    points: float   # could be calculated by adding all subtask points
+    max_points: float
+    ?step_failed: {COMPILE_JAVA, COMPILE_KOTLIN, TEST} StepFailed
+    tasks[]: object TaskData
+        name: str
+        points: float   # could be calculated by adding all subtask points
+        max_points: float
+        bookmarked: bool
+        full_code: $CodeSnippet
+        sub_tasks[]: object SubTaskData
+            name: str
+            description: str
+            points: float
+            max_points: float
+            bookmarked: bool
+            code_snippets[]: $CodeSnippet
+            testcases[]: object Testcase
+                name: str
+                passed: bool
+                ?assertion: str
+
+
+typedef object CodeSnippet
+    name: str
+    class_name: str
+    found: bool
+    ?code: str  # Possible, that the code snippet could not be found in the class
+
+typedef object Identifier
+    elements[]: str # element name last, parents first, ordered
+
+
+typedef object SetError
+    err_msg: str
+    err_type: {RESOURCE_NOT_ALLOWED_FOR_IDENTIFIER, NOT_FOUND} SetErrorType
+
+server = http://localhost:5000/api/v1
+
+submissions
+    uri: /grading/submissions/<submission_name>
+    GET
+        ->
+        <-
+            200
+                submission: $SubmissionData
+            404
+                err_msg: str
+            500
+                err_msg: str
+
+points
+    uri: /grading/points
+    POST
+        ->
+            identifier: $Identifier
+            points: float
+        <-
+            200
+            400
+                error: $SetError
+
+comment
+    uri: /grading/comment
+    POST
+        ->
+            identifier: $Identifier
+            comment: str
+        <-
+            200
+            400
+                error: $SetError
+            404 # identifier not found
+                err_msg: str
+
+bookmark
+    uri: /grading/bookmark
+    POST
+        ->
+            identifier: $Identifier
+            bookmarked: bool
+        <-
+            200
+            400
+                error: $SetError
+
+status
+    uri: /grading/status
+    POST
+        ->
+            identifier: $Identifier
+            status: {NOT_STARTED, ACTIVE, DONE} GradingStatus
+        <-
+            200
+            400
+                error: $SetError
+
+submit_to_canvas
+    uri: /grading/submit_to_canvas
+    POST
+        ->
+        <-
+            200
+            500
+                err_msg: str

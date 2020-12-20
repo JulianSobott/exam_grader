@@ -1,14 +1,21 @@
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 class TestExercise1 {
 
     @Test
     fun `1a) test me`() {
-        assert(true)
+        val a = MyClass1()
+        assertEquals(a.getNumber(), 20)
     }
 
     @Test
     fun `1a) test me fail`() {
-        assert(false)
+        assertTrue(false)
+    }
+
+    @Test
+    fun `1b) another`() {
+        assertTrue(true)
     }
 }

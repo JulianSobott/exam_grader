@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import List, Union
 
@@ -42,7 +43,7 @@ class ReferenceType:
 @dataclass
 class TypeDefinition:
     type_type: type
-    data: Union[ObjectType, IntType, FloatType, StringType, BooleanType, EnumType]
+    data: Union[ObjectType, IntType, FloatType, StringType, BooleanType, EnumType, ReferenceType]
     name: str = None
 
 
@@ -97,3 +98,14 @@ class File:
 class SimpleAttribute:
     key: str
     value: str
+
+
+def get_simple_attribute(attributes: List[SimpleAttribute], name: str, default=None):
+    for a in attributes:
+        if a.key == name:
+            return a.value
+    return default
+
+
+def url_params_from_uri(uri: str) -> List[str]:
+    return re.findall("<([^>]+)>", uri)

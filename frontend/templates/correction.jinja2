@@ -1,0 +1,23 @@
+{% extends 'template.html' %}
+{% from 'correction_logic.jinja2' import create_report %}
+
+{% block body %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Upload</a>
+        <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="/correction/{{ current_num - 1 }}">Previous<span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link" href="/list">List</a>
+            {% set report_id = report.name + "-" + report.students_number %}
+            <a class="nav-item nav-link" onclick="finish('{{ report_id }}')" href="#">Finish</a>
+            <a class="nav-item nav-link" onclick="unfinish('{{ report_id }}')" href="#">Active</a>
+            <a class="nav-item nav-link" href="/correction/{{ current_num + 1 }}">Next</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        {{ create_report(report) }}
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", e => initShortcuts("{{ report_id }}"))
+    </script>
+{% endblock %}

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from random import random
 from typing import Callable, List
 
-from flask import Flask, request, Response
+from flask import Flask, request
 
 from api import todo
 
@@ -31,14 +31,8 @@ def group(rule: str, *sub_routes: List[SimpleRoute]) -> List[SimpleRoute]:
 
 
 def _route(rule: str, request_class, method: str, **options) -> List[SimpleRoute]:
-    def inner(*_, **__):
-        instance = request_class(request)
-        data, err = instance.process_json(method.lower())
-        if err:
-            return Response(err, status=400)
-        caller = instance.__getattribute__(method.lower())
-        res = caller(data)
-        return res.to_json()
+    def inner(*_, **url_params):
+        return request_class._handle_request(request, url_params)
 
     function_name = f"{request_class}_{method}"
     if request_class == todo:

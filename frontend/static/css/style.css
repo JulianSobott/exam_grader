@@ -1,0 +1,32 @@
+.content {
+  top: 60px;
+  margin-left: 5%;
+  margin-right: 1%;
+}
+
+.sub_content {
+  margin-left: 2%;
+}
+
+.bookmark {
+  width: 16px;
+  height: 16px;
+}
+
+.submission_bar {
+  margin-top: 10%;
+  width: 20%;
+}
+
+.bookmark[is-bookmarked=true] {
+  background: url("/static/assets/icons/bookmarked.svg");
+}
+
+.bookmark[is-bookmarked=false] {
+  background: url("/static/assets/icons/bookmarked-not.svg");
+}
+
+
+.filter-checkbox {
+  margin-left: 30px;
+}

@@ -1,0 +1,52 @@
+---
+name: OOP_ZK_2
+canvas_quiz_url: https://aalen.instructure.com/api/v1/courses/2395/quizzes/7491
+tasks:
+  1:
+    class_name: MyClass1
+    canvas_question_id: 10
+    subtasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code_snippets:
+          - code_type: METHOD
+            name: getNumber
+          - code_type: CONSTRUCTOR
+          - code_type: ATTRIBUTES
+          - code_type: CLASS_HEADER
+        static_tests:
+          class_header:
+            name: MyClass1
+          attributes:
+            - name: i
+              type: int
+              access_modifiers: [ private ]
+            - name: x
+              type: String
+              access_modifiers: [ private ]
+          methods:
+            - name: getNumber
+              access_modifiers: [ public ]
+              return_type: int
+      b:
+        description: Another cool program
+        points: 1
+        code_snippets:
+          - code_type: CLASS_HEADER
+          - code_type: METHOD
+            name: nothing
+  2:
+    class_name: MyClass2
+    canvas_question_id: 10
+    subtasks:
+      a:
+        description: Program something cool
+          with some amzing tools
+        points: 3
+        code_snippets:
+          - code_type: METHOD
+            name: getNumbers
+          - code_type: ATTRIBUTES
+          - code_type: CLASS_HEADER

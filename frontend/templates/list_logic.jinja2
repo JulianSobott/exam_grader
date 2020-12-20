@@ -1,0 +1,64 @@
+{% macro create_list(overview) -%}
+  {{ create_list_header(overview) }}
+  {% for file in overview.submissions %}
+    {{ create_slide(file, loop.index0) }}
+  {% endfor %}
+{%- endmacro %}
+
+{% macro create_list_header(file) -%}
+  <div class="header-wrapper">
+    <h1> {{ file.exam_name|replace("_", " ") }} </h1>
+    <div class="row">
+      {{ filter("bookmarked", "bookmarked_True") }}
+      {{ filter("not-bookmarked", "bookmarked_False") }}
+      {{ filter("not-started", "status_NOT_STARTED") }}
+      {{ filter("active", "status_ACTIVE") }}
+      {{ filter("done", "status_DONE") }}
+      {{ filter("passed", "passed_True") }}
+      {{ filter("not-passed", "passed_False") }}
+    </div>
+    <div> {{ file.num_passed }} / {{ file.submissions|length }} passed the test</div>
+  </div>
+{%- endmacro %}
+
+{% macro create_slide(file, idx) -%}
+  <div class="slide-wrapper passed_{{ file.passed }} bookmarked_{{ file.bookmarked }} status_{{ file.status }}">
+    <a href="/correction/{{ idx }}">
+      <button class="btn btn-primary" style="height: 100px; width: 1500px; margin-top: 1%">
+        <div class="row">
+          <div class="col-sm"> {{ file.submission_name|replace("_", " ")|title() }}</div>
+          <div class="col-sm">
+            {% if file.reached_min_points %}
+              {# <mark>Bookmark!</mark> #}
+              <img src="{{ url_for('static', filename='assets/icons/thumbs-up.svg') }}" alt="thumb-up">
+            {% else %}
+              <img src="{{ url_for('static', filename='assets/icons/thumbs-down.svg') }}" alt="thumb-up">
+            {% endif %}
+          </div>
+          {% for f in file.exam_points %}
+            <div class="col-sm"> {{ f.exam_name }}: {{ f.points }} / {{ f.max_points }} </div>
+          {% endfor %}
+          <div class="col-sm">
+            {% if file.bookmarked %}
+              {# <mark>Bookmark!</mark> #}
+              <img src="{{ url_for("static", filename="assets/icons/bookmarked.svg") }}" alt="bookmarked">
+            {% else %}
+              <img src="{{ url_for("static", filename="assets/icons/bookmarked-not.svg") }}" alt="bookmarked">
+            {% endif %}
+          </div>
+          <div class="col-sm"> {{ file.status.value }} </div>
+        </div>
+      </button>
+    </a>
+  </div>
+{%- endmacro %}
+
+
+{%- macro filter(name, add) -%}
+  <div class="filter-checkbox">
+    <label for="cb_{{ name }}">
+      <input id="cb_{{ name }}" type="checkbox" onclick="filter_click('cb_{{ name }}', '{{ add }}')" checked>
+      {{ name }}
+    </label>
+  </div>
+{%- endmacro -%}

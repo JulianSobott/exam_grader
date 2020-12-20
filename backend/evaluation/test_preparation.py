@@ -24,6 +24,9 @@ class MockedPath:
     def exists(self):
         return self._exists
 
+    def mkdir(self, *args, **kwargs):
+        return
+
 
 class TestCopyFiles(unittest.TestCase):
 
@@ -43,7 +46,7 @@ class TestCopyFiles(unittest.TestCase):
         ])
         submission_folder = Path("/submissions")
         # execute
-        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=True)
+        err = preparation.copy_raw_to_structured(raw_folder, submission_folder)
         self.assertIsNone(err)
 
         # test
@@ -57,28 +60,9 @@ class TestCopyFiles(unittest.TestCase):
         ])
         submission_folder = Path("/submissions")
         # execute
-        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=True)
+        err = preparation.copy_raw_to_structured(raw_folder, submission_folder)
         self.assertIsInstance(err, _Error)
 
         # test
         preparation._copy_file_utf8.assert_not_called()
         Path.mkdir.assert_not_called()
-
-    def test_invalid_file_no_fail(self):
-        # prep
-        students_name = "mustermann_max"
-        mat_nr = "1234"
-        file_name = "MyClass1.java"
-
-        raw_folder = MockedPath("/raw", [
-            Path(f"{students_name}{mat_nr}_question_11110_11111_{file_name}"),
-            Path(f"MyClass.java"),
-        ])
-        submission_folder = Path("/submissions")
-        # execute
-        err = preparation.copy_raw_to_structured(raw_folder, submission_folder, fail_fast=False)
-        self.assertIsNone(err)
-
-        # test
-        preparation._copy_file_utf8.assert_called_once()
-        Path.mkdir.assert_called_once()

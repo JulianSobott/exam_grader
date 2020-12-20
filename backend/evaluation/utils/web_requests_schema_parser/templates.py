@@ -1,3 +1,8 @@
+def template(cls):
+    cls.to_str = lambda self: _Template(self).to_str()
+    return cls
+
+
 class CharStream:
 
     def __init__(self, chars: str):
@@ -50,7 +55,10 @@ delta_table = {
 }
 
 
-class Template:
+class _Template:
+
+    def __init__(self, data):
+        self.data = data
 
     def to_str(self):
 
@@ -91,7 +99,7 @@ class Template:
         out = ""
         indent = ""
         state = "LINE_BEGIN"
-        cs = CharStream(self._template)
+        cs = CharStream(self.data._template)
         while cs.has_next():
             if get_char_class(cs.peek()) == "NEWLINE":
                 out += cs.__next__()
@@ -121,21 +129,25 @@ class Template:
 
     def substitude(self, var_name, indentation):
         try:
-            text = self.__getattribute__(f"{var_name}_to_str")()
-        except AttributeError:
-            attribute = self.__getattribute__(var_name)
-            text = self.sub(attribute)
+            text = self.data.__getattribute__(f"{var_name}_to_str")()
+        except AttributeError as e:
+            attribute = self.data.__getattribute__(var_name)
+            text = to_str(attribute)
         return self.indent(indentation, text)
 
-    def sub(self, value):
-        """no indentation, just to string"""
-        if value is None:
-            return ""
-        if isinstance(value, Template):
-            return value.to_str()
-        elif isinstance(value, list):
-            return "\n".join(self.sub(v) for v in value)
-        else:
+
+def to_str(value):
+    """no indentation, just to string"""
+    if value is None:
+        return ""
+    if str(value) == value:
+        return value
+    try:
+        return value.to_str()
+    except AttributeError:
+        try:
+            return "\n".join(to_str(v) for v in value)
+        except TypeError:
             return str(value)
 
 
@@ -151,7 +163,8 @@ def get_char_class(c: str):
     return "OTHER"
 
 
-class Test(Template):
+@template
+class Test:
     name = "Zoe"
     _template = """
 hello

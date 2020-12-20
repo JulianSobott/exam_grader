@@ -1,0 +1,19 @@
+{% extends 'template.html' %}
+
+{% block body %}
+   <div class="content submission_bar">
+        <form action="/" method="post">
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" name="path" placeholder={{ text }}>
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit" value="submit">Submit</button>
+              </div>
+            </div>
+        </form>
+
+       <a href="/list" class="btn btn-primary btn-med" role="button" aria-disabled="false">Continue</a>
+       <div class="after mt-3" >
+           <p style="color: red"> {{ status }} </p>
+       </div>
+   </div>
+{% endblock %}
