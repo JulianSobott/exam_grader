@@ -39,6 +39,7 @@ class SubTaskConfig:
     points: float
     code_snippets: List[CodeSnippetConfig]
     static_tests: Optional[StaticTests] = None
+    has_runtime_tests: bool = True
 
 
 @dataclass

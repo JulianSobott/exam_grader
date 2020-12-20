@@ -204,9 +204,10 @@ def save_test_results(results: TestResults):
                             testcases[task_name][subtask_name] = []
                         testcases[task_name][subtask_name].append(testcase)
 
+        cfg = get_exam_config_else_raise()
         for task_name, task in testcases.items():
             for subtask_name, subtask_testcases in task.items():
-                if not submission_path.exists():
+                if not submission_path.exists() and cfg.tasks[task_name].subtasks[subtask_name].has_runtime_tests:
                     subtask_testcases.append(Testcase("runtime tests", False, "Did not compile"))
                 set_testcases(res.submission_name, task_name, subtask_name, Testcases(subtask_testcases))
 
