@@ -1,5 +1,6 @@
 {# for a list of the parameters used in the sections refer to /docs #}
 
+{% set default_collapse = "" %}
 <!-- building the report from header and body -->
 {% macro create_report(report) -%}
     {{ create_header(report) }}
@@ -70,7 +71,7 @@
         </div>
     </div>
 
-    <div class="sub_content accordion-collapse collapse task-body" id="{{ id }}">
+    <div class="sub_content accordion-collapse {{ default_collapse }} task-body" id="{{ id }}">
         <div class="row">
             <div style="width: 50%;">
                 <dl class="row">
@@ -116,13 +117,15 @@
         </div>
     </div>
 
-    <div class="accordion-collapse collapse subtask-body" id="{{ id }}">
+    <div class="accordion-collapse {{ default_collapse }} subtask-body" id="{{ id }}">
         <div class="mt-2">
             {{ subtask.description }}
         </div>
         <div class="input-group mt-3">
             <span class="input-group-text">Points</span>
-            <input class="form-control" onchange="set_points('subtask_point_input__{{ id }}')" id="subtask_point_input__{{ id }}" type="number" step="0.5" value="{{ subtask.points }}" min="0" max="{{ subtask.max_points }}">
+            <input class="form-control" onchange="set_points('subtask_point_input__{{ id }}')"
+                   id="subtask_point_input__{{ id }}" type="number" step="0.5" value="{{ subtask.points }}" min="0"
+                   max="{{ subtask.max_points }}">
             <span class="input-group-text"> / {{ subtask.max_points }}</span>
             <button class="btn btn-outline-secondary" type="button"
                     onclick="max_point('subtask_point_input__{{ id }}')">Max
