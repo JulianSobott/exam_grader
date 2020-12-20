@@ -119,7 +119,9 @@
 
     <div class="accordion-collapse {{ default_collapse }} subtask-body" id="{{ id }}">
         <div class="mt-2">
-            {{ subtask.description }}
+            <pre style="white-space: pre-wrap">
+                {{ subtask.description }}
+            </pre>
         </div>
         <div class="input-group mt-3">
             <span class="input-group-text">Points</span>
