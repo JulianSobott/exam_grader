@@ -26,19 +26,22 @@ class MethodTest:
 
 
 def test_method(method: MethodTest, code: str) -> List[MethodFailure]:
-    regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*((?P<abstract>abstract)\s)?\s*((?P<return_type>\w+)\s)\s*"
-                       + method.name
-                       + r"\s*\((?P<parameters>[^)]*)\)")
+    if method.is_constructor:
+        regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*"
+                           + method.name
+                           + r"\s*\((?P<parameters>[^)]*)\)")
+    else:
+        regex = re.compile(r"((?P<access_modifier>\w+)\s)?\s*((?P<abstract>abstract)\s)?\s*((?P<return_type>\w+)\s)\s*"
+                           + method.name
+                           + r"\s*\((?P<parameters>[^)]*)\)")
     match = regex.search(code)
     if match is None:
         return [MethodFailure.NAME]
     failures = []
     if not access_modifier_matched(match.group("access_modifier"), method.access_modifiers):
         failures.append(MethodFailure.ACCESS_MODIFIER)
-    if not abstract_matched(match.group("abstract"), method.is_abstract):
+    if not method.is_constructor and not abstract_matched(match.group("abstract"), method.is_abstract):
         failures.append(MethodFailure.ABSTRACT)
-    if method.is_constructor and match.group("return_type"):
-        failures.append(MethodFailure.RETURN_TYPE)
     if not method.is_constructor and method.return_type != match.group("return_type"):
         failures.append(MethodFailure.RETURN_TYPE)
     # parameters

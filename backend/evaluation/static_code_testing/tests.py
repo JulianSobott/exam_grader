@@ -52,6 +52,11 @@ class TestMethod(unittest.TestCase):
                                "public void getName( Car c, String args)")
         self.assertEqual([MethodFailure.PARAMETERS], failures)
 
+    def test_constructor(self):
+        failures = test_method(MethodTest("Car", [AccessModifier.PUBLIC], "", ["String", "Car"], is_constructor=True),
+                               "public Car(String args, Car c)")
+        self.assertEqual([], failures)
+
 
 class TestClass(unittest.TestCase):
 

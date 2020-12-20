@@ -206,6 +206,8 @@ def save_test_results(results: TestResults):
 
         for task_name, task in testcases.items():
             for subtask_name, subtask_testcases in task.items():
+                if not submission_path.exists():
+                    subtask_testcases.append(Testcase("runtime tests", False, "Did not compile"))
                 set_testcases(res.submission_name, task_name, subtask_name, Testcases(subtask_testcases))
 
 
