@@ -10,7 +10,6 @@ function bookmarkClick(id) {
     const new_bookmark = !old_bookmark;
     // split into id-sections (submission, task, subtask)
     let elements = id.split("--")
-    console.log(elements);
     // update toggled bookmark at server and show response
     postBookmark({elements: elements}, new_bookmark).then(res => {
         if (res.status_code === 200) {
@@ -27,14 +26,11 @@ function bookmarkClick(id) {
 function set_points(name_id) {
     // split into id-sections (submission, task, subtask)
     let elements = name_id.split("__")[1].split("--")
-    console.log(elements)
     // get points from input field
     let points = parseFloat(document.getElementById(name_id).value);
     // post points to server and show response
     postPoints({elements: elements}, points).then(res => {
-        console.log(res.status_code)
         if (res.status_code === 200) {
-            console.log(name_id + ": " + points);
             updated_points();
         }
         else {
@@ -55,7 +51,6 @@ function max_point(name_id) {
 function set_comment(name_id) {
     // split into id-sections (submission, task, subtask)
     let elements = name_id.split("__")[1].split("--")
-    console.log(elements)
     // get comment from input field
     let comment = document.getElementById(name_id).value;
     // post comment to server and show response
@@ -65,7 +60,7 @@ function set_comment(name_id) {
             console.log(name_id + ": " + comment);
         }
         else if (res.status_code === 404) {
-            console.log(res.err_msg)
+            console.error(res.err_msg)
         }
         else {
             console.error(res.error.err_msg);
@@ -77,7 +72,6 @@ function set_comment(name_id) {
 function finish(id) {
     // post status to server and show response
     postStatus({elements: [id]}, "DONE").then(res => {
-        console.log(res.status_code)
         if (res.status_code === 200) {
             console.log("status: DONE")
         }
@@ -92,7 +86,6 @@ function finish(id) {
 function unfinish(id) {
     // post status to server and show response
     postStatus({elements: [id]}, "ACTIVE").then(res => {
-        console.log(res.status_code)
         if (res.status_code === 200) {
             console.log("status: ACTIVE")
         } else {
@@ -125,25 +118,35 @@ function initShortcuts(id) {
             // next
             const curr = +window.location.href.split("/").slice(-1)
             window.location.href = `/correction/${curr + 1}`;
+            ev.preventDefault();
+            ev.stopPropagation();
         }
         if (ev.ctrlKey && ev.key === "ArrowLeft") {
             // prev
             const curr = +window.location.href.split("/").slice(-1)
             window.location.href = `/correction/${curr - 1}`;
+            ev.preventDefault();
+            ev.stopPropagation();
         }
         if (ev.ctrlKey && ev.shiftKey && ev.key === "F") {
             finish(id);
+            ev.preventDefault();
+            ev.stopPropagation();
         }
         if (ev.ctrlKey && ev.shiftKey && ev.key === "A") {
             unfinish(id);
+            ev.preventDefault();
+            ev.stopPropagation();
         }
         if (ev.ctrlKey && ev.shiftKey && ev.key === "B") {
             bookmarkClick(id);
+            ev.preventDefault();
+            ev.stopPropagation();
         }
         if (ev.ctrlKey && ev.key === "l") {
             window.location.href = `/list`;
+            ev.preventDefault();
+            ev.stopPropagation();
         }
-        ev.preventDefault();
-        ev.stopPropagation();
     })
 }

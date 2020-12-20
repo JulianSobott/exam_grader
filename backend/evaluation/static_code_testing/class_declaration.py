@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, field
 from enum import IntEnum, Enum
-from typing import List
+from typing import List, Optional
 
 from static_code_testing.lib import AccessModifier, access_modifier_matched, abstract_matched, match_lists
 
@@ -23,7 +23,7 @@ class ClassType(Enum):
 @dataclass
 class ClassTest:
     name: str
-    extends: str = None
+    extends: Optional[str] = None
     implements: List[str] = field(default_factory=list)
     is_abstract: bool = False
     access_modifiers: List[AccessModifier] = field(default_factory=lambda: [AccessModifier.PUBLIC])

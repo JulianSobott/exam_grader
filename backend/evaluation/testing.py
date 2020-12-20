@@ -171,7 +171,8 @@ def save_test_results(results: TestResults):
     reports_folder = test_results_folder
     for res in results.submissions:
         submission_path = reports_folder.joinpath(res.submission_name).joinpath("test")
-        update_test_results(res.submission_name, res.error_message, res.failed_task)
+        failed_task = res.failed_task if res.failed_task else StepFailed.COMPILE_JAVA
+        update_test_results(res.submission_name, res.error_message, failed_task)
 
         testcases = {}
         # static
