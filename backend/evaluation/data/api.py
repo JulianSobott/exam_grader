@@ -70,10 +70,11 @@ def overview_data() -> OverviewData:
     num_passed = 0
     for temp in submissions_intermediate_data.values():
         so: SubmissionOverview = temp["overview"]
-        so.exam_points = temp["points"]
-        so.reached_min_points = sum(x.points for x in so.exam_points) >= 50
-        num_passed += so.reached_min_points
-        overview_submissions.append(so)
+        if so:
+            so.exam_points = temp["points"]
+            so.reached_min_points = sum(x.points for x in so.exam_points) >= 50
+            num_passed += so.reached_min_points
+            overview_submissions.append(so)
     return OverviewGET200Response(exam_name, len(overview_submissions), num_passed, overview_submissions)
 
 
@@ -100,8 +101,8 @@ def submission_data(submission_name: str) -> Tuple[Optional[SubmissionData], err
             task_points += st.points
             task_max_points += st.max_points
             subtasks.append(
-                SubTaskData(st.name, st.description.strip(), st.points, st.max_points, st.bookmarked, st.code_snippets,
-                            st.testcases))
+                SubTaskData(st.name, st.description.strip(), st.points, st.comment, st.max_points, st.bookmarked,
+                            st.code_snippets, st.testcases))
         tasks.append(
             TaskData(t.name, task_points, task_max_points, t.bookmarked, t.full_code, subtasks))
     return SubmissionData(sub.student.name, sub.student.student_number, num_correct, num_subtasks,

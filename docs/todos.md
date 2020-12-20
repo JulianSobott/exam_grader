@@ -1,3 +1,12 @@
 - correction
-  - color if full points
-    
+    - color if full points
+
+- scroll full_code (always visible)
+- insert code after renaming
+- undo
+- why correction/0 failed formatting (task 6)
+- bootstrap cdn
+- save funny code snippets
+- enroll first wrong
+- show correct implementation
+- jump to (subtask, submission, task)

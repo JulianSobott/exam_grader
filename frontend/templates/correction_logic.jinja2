@@ -135,7 +135,8 @@
         </div>
         <div class="input-group mt-3">
             <span class="input-group-text">Comment</span>
-            <textarea onchange="set_comment('subtask_comment_input__{{ id }}')" class="form-control" id="subtask_comment_input__{{ id }}"></textarea>
+            <textarea onchange="set_comment('subtask_comment_input__{{ id }}')" class="form-control"
+                      id="subtask_comment_input__{{ id }}">{{ subtask.comment }}</textarea>
         </div>
 
         {% if subtask.testcases %}
@@ -144,8 +145,8 @@
             </div>
             <table class="table">
                 <tbody>
-                    {% for case in subtask.testcases %}
-                        <tr>
+                {% for case in subtask.testcases %}
+                    <tr>
                             <td class="col">{{ case.name }}</td>
                             {% if case.passed %}
                                 <td class="col table-success">PASSED</td>

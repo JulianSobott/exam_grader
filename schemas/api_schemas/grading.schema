@@ -16,6 +16,7 @@ typedef object SubmissionData
             name: str
             description: str
             points: float
+            comment: str
             max_points: float
             bookmarked: bool
             code_snippets[]: $CodeSnippet
